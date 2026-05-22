@@ -1183,7 +1183,8 @@ _Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubi
         
         telefono_cliente = st.text_input(
             "WhatsApp cliente (solo 9 dígitos)",
-            placeholder="912345678"
+            placeholder="912345678",
+            key="telefono_cliente_wa"
         )
         
         if telefono_cliente:
