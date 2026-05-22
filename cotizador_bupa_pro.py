@@ -432,7 +432,7 @@ with st.sidebar:
     st.markdown("## 👤 Datos del Cliente")
     nombre    = st.text_input("Nombre completo", placeholder="Ej: Franco Lupi")
     edad_c    = st.number_input("Edad contratante", 18, 84, 35)
-    prevision = st.selectbox("Previsión", ["FONASA / FONASA B,C,D","ISAPRE"])
+    prevision = st.selectbox("Previsión", ["FONASA B,C,D","ISAPRE"])
     prevision_base = "ISAPRE" if prevision == "ISAPRE" else "FONASA"
 
     st.markdown("---")
@@ -1167,6 +1167,30 @@ Te comparto tus opciones de *Bupa Seguros* 🏥
 _Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._""".replace(",",".")
 
         st.code(msg, language=None)
+
+        import os
+
+st.markdown("## 📄 PDFs Oficiales")
+
+for plan_key in planes_seleccionados:
+
+    nombre_plan = PLANES[plan_key]["nombre"]
+
+    if nombre_plan in PDFS_PLANES:
+
+        ruta_pdf = PDFS_PLANES[nombre_plan]
+
+        if os.path.exists(ruta_pdf):
+
+            with open(ruta_pdf, "rb") as pdf_file:
+
+                st.download_button(
+                    label=f"📄 Descargar {nombre_plan}",
+                    data=pdf_file,
+                    file_name=os.path.basename(ruta_pdf),
+                    mime="application/pdf"
+                )
+        
         st.success(f"✅ Mensaje listo con {len(planes_seleccionados)} plan(es) seleccionado(s).")
 
 
