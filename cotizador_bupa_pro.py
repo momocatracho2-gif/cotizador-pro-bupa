@@ -8,6 +8,37 @@
 """
 
 import streamlit as st
+
+# ═══════════════════════════════════════
+# LOGIN SIMPLE
+# ═══════════════════════════════════════
+
+USUARIOS = {
+    "romulo": "seguros2026",
+    "demo": "demo123"
+}
+
+if "login_ok" not in st.session_state:
+    st.session_state.login_ok = False
+
+if not st.session_state.login_ok:
+
+    st.title("🔒 Acceso Cotizador PRO")
+
+    usuario = st.text_input("Usuario")
+    clave = st.text_input("Contraseña", type="password")
+
+    if st.button("Ingresar"):
+
+        if usuario in USUARIOS and USUARIOS[usuario] == clave:
+            st.session_state.login_ok = True
+            st.rerun()
+
+        else:
+            st.error("Usuario o contraseña incorrecta")
+
+    st.stop()
+
 import pandas as pd
 from datetime import date
 
