@@ -1225,8 +1225,7 @@ st.download_button(
     mime="application/zip"
 )
 
-        
-        st.success(f"✅ Mensaje listo con {len(planes_seleccionados)} plan(es) seleccionado(s).")
+st.success(f"✅ Mensaje listo con {len(planes_seleccionados)} plan(es) seleccionado(s).")
 
 
 # ── PYME (solo informativo) ───────────────────────────────────────
