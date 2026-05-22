@@ -1177,7 +1177,7 @@ _Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubi
         # BOTÓN WHATSAPP
         # ==========================================
 
-        mensaje_url = urllib.parse.quote(msg)
+        mensaje_url = quote(msg)
 
         telefono_limpio = telefono.replace("+", "").replace(" ", "")
 
