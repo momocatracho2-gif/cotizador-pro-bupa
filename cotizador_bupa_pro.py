@@ -1207,22 +1207,22 @@ with zipfile.ZipFile(zip_buffer, "w") as zip_file:
 
     for plan_key in planes_seleccionados:
 
-        try:
-            nombre_plan = PLANES[plan_key]["nombre"]
+    if plan_key in PLANES:
+        nombre_plan = PLANES[plan_key]["nombre"]
 
-        except:
-            continue
+    else:
+        nombre_plan = plan_key
 
-        if nombre_plan in PDFS_PLANES:
+    if nombre_plan in PDFS_PLANES:
 
-            ruta_pdf = PDFS_PLANES[nombre_plan]
+        ruta_pdf = PDFS_PLANES[nombre_plan]
 
-            if os.path.exists(ruta_pdf):
+        if os.path.exists(ruta_pdf):
 
-                zip_file.write(
-                    ruta_pdf,
-                    arcname=os.path.basename(ruta_pdf)
-                )
+            zip_file.write(
+                ruta_pdf,
+                arcname=os.path.basename(ruta_pdf)
+            )
 
 zip_buffer.seek(0)
 
