@@ -9,6 +9,9 @@
 
 import streamlit as st
 
+import zipfile
+import io
+
 # ═══════════════════════════════════════
 # LOGIN SIMPLE
 # ═══════════════════════════════════════
@@ -1190,6 +1193,38 @@ for plan_key in planes_seleccionados:
                     file_name=os.path.basename(ruta_pdf),
                     mime="application/pdf"
                 )
+# ==========================================
+# PACK CLIENTE ZIP
+# ==========================================
+
+zip_buffer = io.BytesIO()
+
+with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+
+    for plan_key in planes_seleccionados:
+
+        nombre_plan = PLANES[plan_key]["nombre"]
+
+        if nombre_plan in PDFS_PLANES:
+
+            ruta_pdf = PDFS_PLANES[nombre_plan]
+
+            if os.path.exists(ruta_pdf):
+
+                zip_file.write(
+                    ruta_pdf,
+                    arcname=os.path.basename(ruta_pdf)
+                )
+
+zip_buffer.seek(0)
+
+st.download_button(
+    label="📦 Descargar Pack Cliente",
+    data=zip_buffer,
+    file_name=f"{nombre.replace(' ', '_')}_Cotizacion_Bupa.zip",
+    mime="application/zip"
+)
+
         
         st.success(f"✅ Mensaje listo con {len(planes_seleccionados)} plan(es) seleccionado(s).")
 
