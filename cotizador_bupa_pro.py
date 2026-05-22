@@ -6,11 +6,13 @@
     pip install streamlit pandas
     streamlit run cotizador_bupa_pro.py
 """
-
 import streamlit as st
-
-import zipfile
+import pandas as pd
+import os
 import io
+import zipfile
+from datetime import date
+from urllib.parse import quote
 
 # ═══════════════════════════════════════
 # LOGIN SIMPLE
