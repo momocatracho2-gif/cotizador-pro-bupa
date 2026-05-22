@@ -1201,13 +1201,13 @@ zip_buffer = io.BytesIO()
 
 with zipfile.ZipFile(zip_buffer, "w") as zip_file:
 
-for plan_key in planes_seleccionados:
-
-    if plan_key in PLANES:
-        nombre_plan = PLANES[plan_key]["nombre"]
-
-    else:
-        continue
+    for plan_key in planes_seleccionados:
+    
+        if plan_key in PLANES:
+            nombre_plan = PLANES[plan_key]["nombre"]
+    
+        else:
+            continue
 
         if nombre_plan in PDFS_PLANES:
 
