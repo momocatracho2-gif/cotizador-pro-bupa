@@ -14,6 +14,87 @@ import zipfile
 from datetime import date
 from urllib.parse import quote
 
+st.markdown("""
+<style>
+
+/* ===== APP ===== */
+.stApp{
+    background-color:#f6f9fc;
+}
+
+/* ===== SIDEBAR ===== */
+[data-testid="stSidebar"]{
+    background: linear-gradient(180deg,#0B5ED7,#1E88E5);
+}
+
+[data-testid="stSidebar"] *{
+    color:white;
+}
+
+/* ===== TITULOS ===== */
+h1{
+    color:#003A70 !important;
+    font-weight:700 !important;
+}
+
+h2,h3{
+    color:#005EB8 !important;
+}
+
+/* ===== TARJETAS ===== */
+div[data-testid="stMetric"]{
+    background:white;
+    border-radius:16px;
+    padding:18px;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+    border-left:5px solid #00AEEF;
+}
+
+/* ===== BOTONES ===== */
+.stButton > button,
+.stDownloadButton > button{
+    background:#00AEEF !important;
+    color:white !important;
+    border-radius:12px !important;
+    border:none !important;
+    font-weight:600 !important;
+    padding:0.6rem 1rem !important;
+    transition:.2s;
+}
+
+.stButton > button:hover,
+.stDownloadButton > button:hover{
+    background:#008FCC !important;
+    transform:translateY(-1px);
+}
+
+/* ===== LINK BUTTON (WhatsApp) ===== */
+a[data-testid="stLinkButton"]{
+    background:#25D366 !important;
+    color:white !important;
+    padding:12px 18px !important;
+    border-radius:12px !important;
+    text-decoration:none !important;
+    font-weight:700 !important;
+}
+
+a[data-testid="stLinkButton"]:hover{
+    background:#1fb958 !important;
+}
+
+/* ===== INPUTS ===== */
+input, textarea{
+    border-radius:12px !important;
+}
+
+/* ===== SUCCESS ===== */
+[data-testid="stAlert"]{
+    border-radius:14px !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 # ═══════════════════════════════════════
 # LOGIN SIMPLE
 # ═══════════════════════════════════════
