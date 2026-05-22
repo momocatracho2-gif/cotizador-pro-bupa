@@ -1144,13 +1144,6 @@ _Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubi
         st.code(msg, language=None)
         st.success(f"✅ Mensaje listo con {len(planes_seleccionados)} plan(es) seleccionado(s).")
 
-st.text_area(
-    "📋 Copia y pega en WhatsApp",
-    value=msg,
-    height=500
-)
-
-st.caption("💡 Presiona CTRL + A y luego CTRL + C para copiar rápidamente.")
 
 # ── PYME (solo informativo) ───────────────────────────────────────
 if f_pyme:
