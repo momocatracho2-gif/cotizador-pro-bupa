@@ -85,7 +85,7 @@ PDFS_PLANES = {
     "Dental IntegraMédica": "pdfs/Plan Dental IntegraMédica 68%.pdf",
     "IntegraMédica 100%": "pdfs/Plan IntegraMédica 100%.pdf",
 
-    "Adulto Mayor 70": "pdfs/Plan IntegraMédica Adulto Mayor 70.pdf",
+    "Plan Adulto Mayor 70%": "pdfs/Plan IntegraMédica Adulto Mayor 70.pdf",
 
     "Bupa Complementa": "pdfs/Seguro BCO Bupa Complementa.pdf",
 
