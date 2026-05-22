@@ -1177,34 +1177,34 @@ _Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubi
 
         st.code(msg, language=None)
 
-# ==========================================
-# BOTÓN WHATSAPP
-# ==========================================
-
-telefono_cliente = st.text_input(
-    "WhatsApp cliente (solo 9 dígitos)",
-    placeholder="912345678"
-)
-
-if telefono_cliente:
-
-    telefono_destino = f"56{telefono_cliente}"
-
-    mensaje_url = quote(msg, safe="")
-
-    wa_link = (
-        f"https://web.whatsapp.com/send?"
-        f"phone={telefono_destino}&text={mensaje_url}"
-    )
-
-    st.link_button(
-        "📲 Abrir WhatsApp",
-        wa_link
-    )
-
-else:
-
-    st.warning("⚠️ Ingresa el número del cliente.")
+        # ==========================================
+        # BOTÓN WHATSAPP
+        # ==========================================
+        
+        telefono_cliente = st.text_input(
+            "WhatsApp cliente (solo 9 dígitos)",
+            placeholder="912345678"
+        )
+        
+        if telefono_cliente:
+        
+            telefono_destino = f"56{telefono_cliente}"
+        
+            mensaje_url = quote(msg, safe="")
+        
+            wa_link = (
+                f"https://web.whatsapp.com/send?"
+                f"phone={telefono_destino}&text={mensaje_url}"
+            )
+        
+            st.link_button(
+                "📲 Abrir WhatsApp",
+                wa_link
+            )
+        
+        else:
+        
+            st.warning("⚠️ Ingresa el número del cliente.")
         
         # ==========================================
         # PDFs OFICIALES
