@@ -1142,9 +1142,17 @@ Te comparto tus opciones de *Bupa Seguros* 🏥
 _Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._""".replace(",",".")
 
         st.code(msg, language=None)
-        st.button("📋 Copiar mensaje WhatsApp")
         st.success(f"✅ Mensaje listo con {len(planes_seleccionados)} plan(es) seleccionado(s).")
 
+if st.button("📋 Copiar mensaje WhatsApp"):
+
+    st.markdown(f"""
+    <script>
+    navigator.clipboard.writeText(`{msg}`);
+    </script>
+    """, unsafe_allow_html=True)
+
+    st.success("✅ Mensaje copiado al portapapeles")
 
 # ── PYME (solo informativo) ───────────────────────────────────────
 if f_pyme:
