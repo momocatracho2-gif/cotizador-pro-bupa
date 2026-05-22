@@ -15,7 +15,7 @@ import streamlit as st
 
 USUARIOS = {
     "romulo": "seguros2026",
-    "demo": "demo123"
+    "demo": "demo123",
     "ale": "mochada1997"
 }
 
