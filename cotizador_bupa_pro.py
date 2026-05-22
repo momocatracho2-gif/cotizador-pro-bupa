@@ -19,26 +19,59 @@ st.markdown("""
 
 /* ===== APP ===== */
 .stApp{
-    background-color:#f6f9fc;
+    background-color:#F4F8FC;
 }
 
 /* ===== SIDEBAR ===== */
 [data-testid="stSidebar"]{
-    background: linear-gradient(180deg,#0B5ED7,#1E88E5);
+    background: linear-gradient(180deg,#4EA5F5,#74B9FF);
+    border-right:1px solid #d9e6f2;
 }
 
 [data-testid="stSidebar"] *{
-    color:white;
+    color:#083B66 !important;
 }
 
 /* ===== TITULOS ===== */
 h1{
     color:#003A70 !important;
+    font-weight:800 !important;
+}
+
+h2{
+    color:#005EB8 !important;
     font-weight:700 !important;
 }
 
-h2,h3{
-    color:#005EB8 !important;
+h3{
+    color:#0066C2 !important;
+    font-weight:600 !important;
+}
+
+/* ===== TEXTO ===== */
+p, label, span, div{
+    color:#1f2d3d;
+}
+
+/* ===== INPUTS ===== */
+.stTextInput input,
+.stNumberInput input,
+textarea{
+    background:white !important;
+    color:#222 !important;
+    border:1px solid #c9d7e6 !important;
+    border-radius:12px !important;
+}
+
+.stTextInput input::placeholder{
+    color:#9aa9b8 !important;
+}
+
+/* ===== SELECTBOX ===== */
+.stSelectbox div[data-baseweb="select"]{
+    background:white !important;
+    color:#222 !important;
+    border-radius:12px !important;
 }
 
 /* ===== TARJETAS ===== */
@@ -46,34 +79,32 @@ div[data-testid="stMetric"]{
     background:white;
     border-radius:16px;
     padding:18px;
-    box-shadow:0 4px 14px rgba(0,0,0,.08);
+    box-shadow:0 4px 14px rgba(0,0,0,.06);
     border-left:5px solid #00AEEF;
 }
 
 /* ===== BOTONES ===== */
 .stButton > button,
 .stDownloadButton > button{
-    background:#00AEEF !important;
+    background:#009FE3 !important;
     color:white !important;
-    border-radius:12px !important;
     border:none !important;
+    border-radius:12px !important;
     font-weight:600 !important;
     padding:0.6rem 1rem !important;
-    transition:.2s;
 }
 
 .stButton > button:hover,
 .stDownloadButton > button:hover{
-    background:#008FCC !important;
-    transform:translateY(-1px);
+    background:#0088c6 !important;
 }
 
-/* ===== LINK BUTTON (WhatsApp) ===== */
+/* ===== WHATSAPP ===== */
 a[data-testid="stLinkButton"]{
     background:#25D366 !important;
     color:white !important;
-    padding:12px 18px !important;
     border-radius:12px !important;
+    padding:12px 18px !important;
     text-decoration:none !important;
     font-weight:700 !important;
 }
@@ -82,12 +113,7 @@ a[data-testid="stLinkButton"]:hover{
     background:#1fb958 !important;
 }
 
-/* ===== INPUTS ===== */
-input, textarea{
-    border-radius:12px !important;
-}
-
-/* ===== SUCCESS ===== */
+/* ===== ALERTAS ===== */
 [data-testid="stAlert"]{
     border-radius:14px !important;
 }
