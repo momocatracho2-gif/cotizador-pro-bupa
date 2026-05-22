@@ -1188,82 +1188,75 @@ _Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubi
             wa_link
         )
         
-import os
-import urllib.parse
+        # ==========================================
+        # PDFs OFICIALES
+        # ==========================================
 
-mensaje_url = urllib.parse.quote(msg)
+        st.markdown("## 📄 PDFs Oficiales")
 
-telefono_limpio = telefono.replace("+", "").replace(" ", "")
+        for plan_key in planes_seleccionados:
 
-wa_link = f"https://wa.me/{telefono_limpio}?text={mensaje_url}"
+            if plan_key in PLANES:
+                nombre_plan = PLANES[plan_key]["nombre"]
 
-st.link_button(
-    "📲 Abrir WhatsApp",
-    wa_link
-)
-  
+            elif plan_key in CONVENIOS:
+                nombre_plan = CONVENIOS[plan_key]["nombre"]
 
-st.markdown("## 📄 PDFs Oficiales")
+            else:
+                continue
 
-for plan_key in planes_seleccionados:
+            if nombre_plan in PDFS_PLANES:
 
-    try:
-        nombre_plan = PLANES[plan_key]["nombre"]
+                ruta_pdf = PDFS_PLANES[nombre_plan]
 
-    except:
-        continue
+                if os.path.exists(ruta_pdf):
 
-    if nombre_plan in PDFS_PLANES:
+                    with open(ruta_pdf, "rb") as pdf_file:
 
-        ruta_pdf = PDFS_PLANES[nombre_plan]
-
-        if os.path.exists(ruta_pdf):
-
-            with open(ruta_pdf, "rb") as pdf_file:
-
-                st.download_button(
-                    label=f"📄 Descargar {nombre_plan}",
-                    data=pdf_file,
-                    file_name=os.path.basename(ruta_pdf),
-                    mime="application/pdf"
-                )
-# ==========================================
-# PACK CLIENTE ZIP
-# ==========================================
-
-zip_buffer = io.BytesIO()
-
-with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-
-    for plan_key in planes_seleccionados:
-
-        if plan_key in PLANES:
-            nombre_plan = PLANES[plan_key]["nombre"]
-
-        else:
-            nombre_plan = plan_key
-
-        if nombre_plan in PDFS_PLANES:
-
-            ruta_pdf = PDFS_PLANES[nombre_plan]
-
-            if os.path.exists(ruta_pdf):
-
-                zip_file.write(
-                    ruta_pdf,
-                    arcname=os.path.basename(ruta_pdf)
-                )
-
-zip_buffer.seek(0)
-
-st.download_button(
-    label="📦 Descargar Pack Cliente",
-    data=zip_buffer,
-    file_name=f"{nombre.replace(' ', '_')}_Cotizacion_Bupa.zip",
-    mime="application/zip"
-)
-
-st.success(f"✅ Mensaje listo con {len(planes_seleccionados)} plan(es) seleccionado(s).")
+                        st.download_button(
+                            label=f"📄 Descargar {nombre_plan}",
+                            data=pdf_file,
+                            file_name=os.path.basename(ruta_pdf),
+                            mime="application/pdf",
+                            key=f"pdf_{plan_key}"
+                        )
+        # ==========================================
+        # PACK CLIENTE ZIP
+        # ==========================================
+        
+        zip_buffer = io.BytesIO()
+        
+        with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+        
+            for plan_key in planes_seleccionados:
+        
+                if plan_key in PLANES:
+                    nombre_plan = PLANES[plan_key]["nombre"]
+        
+                else:
+                    nombre_plan = plan_key
+        
+                if nombre_plan in PDFS_PLANES:
+        
+                    ruta_pdf = PDFS_PLANES[nombre_plan]
+        
+                    if os.path.exists(ruta_pdf):
+        
+                        zip_file.write(
+                            ruta_pdf,
+                            arcname=os.path.basename(ruta_pdf)
+                        )
+        
+        zip_buffer.seek(0)
+        
+        st.download_button(
+            label="📦 Descargar Pack Cliente",
+            data=zip_buffer,
+            file_name=f"{nombre.replace(' ', '_')}_Cotizacion_Bupa.zip",
+            mime="application/zip"
+        )
+        
+        st.success(f"✅ Mensaje listo con {len(planes_seleccionados)} plan(es) seleccionado(s).")
 
 
 # ── PYME (solo informativo) ───────────────────────────────────────
