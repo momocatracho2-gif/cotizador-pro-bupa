@@ -16,6 +16,7 @@ import streamlit as st
 USUARIOS = {
     "romulo": "seguros2026",
     "demo": "demo123"
+    "ale": "mochada1997"
 }
 
 if "login_ok" not in st.session_state:
@@ -63,6 +64,30 @@ st.set_page_config(
 # flags: cat, libre, maternidad, salud_mental, quirurgico, sin_dps
 # prevision: ["FONASA"], ["ISAPRE"], ["FONASA","ISAPRE"]
 # ══════════════════════════════════════════════════════════════════
+
+PDFS_PLANES = {
+    "Bupa + Protección 70/25": "pdfs/Seguro BMP Bupa + Proteccion 70-25.pdf",
+    "Bupa + Protección 70/70": "pdfs/Seguro BMP Bupa + Proteccion 70-70.pdf",
+    "Bupa + Protección 80/70": "pdfs/Seguro BMP Bupa + Proteccion 80-70.pdf",
+
+    "Bupa Ambulatorio 70": "pdfs/Seguro BMPA70 Bupa Ambulatorio + Protección.pdf",
+
+    "Bupa Cuidado Total 60": "pdfs/Seguro BCT Bupa Cuidado Total 60.pdf",
+    "Bupa Cuidado Total 70": "pdfs/Seguro BCT Bupa Cuidado Total 70.pdf",
+    "Bupa Cuidado Total 80": "pdfs/Seguro BCT Bupa Cuidado Total 80.pdf",
+
+    "Bupa MultiSalud": "pdfs/Seguro BMS Bupa MultiSalud.pdf",
+    "Bupa MultiSalud Pro": "pdfs/Seguro BMS Bupa MultiSalud Pro.pdf",
+
+    "Dental IntegraMédica": "pdfs/Plan Dental IntegraMédica 68%.pdf",
+    "IntegraMédica 100%": "pdfs/Plan IntegraMédica 100%.pdf",
+
+    "Adulto Mayor 70": "pdfs/Plan IntegraMédica Adulto Mayor 70.pdf",
+
+    "Bupa Complementa": "pdfs/Seguro BCO Bupa Complementa.pdf",
+
+    "PYME Digital": "pdfs/PYME Digital.pdf",
+}
 
 PLANES = {
     "70/25": {
