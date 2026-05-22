@@ -1185,7 +1185,8 @@ _Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubi
             "📲 Abrir WhatsApp",
             wa_link
         )
-
+        
+import os
 import urllib.parse
 
 mensaje_url = urllib.parse.quote(msg)
@@ -1198,8 +1199,7 @@ st.link_button(
     "📲 Abrir WhatsApp",
     wa_link
 )
-
-        import os
+  
 
 st.markdown("## 📄 PDFs Oficiales")
 
