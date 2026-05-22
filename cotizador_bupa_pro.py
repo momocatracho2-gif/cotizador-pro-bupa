@@ -1012,6 +1012,10 @@ with t4:
         with wa1:
             asesor   = st.text_input("Tu nombre", "Romulo Lupi")
             telefono = st.text_input("Tu teléfono", "+569 90790892")
+            telefono_cliente = st.text_input(
+                "WhatsApp cliente (solo 9 dígitos)",
+                placeholder="912345678"
+            )
         with wa2:
             modo = st.radio("Modo", ["Un solo plan","Comparativa (todos los seleccionados)"])
 
@@ -1179,12 +1183,23 @@ _Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubi
 
         mensaje_url = quote(msg, safe="")
 
-        wa_link = f"https://web.whatsapp.com/send?text={mensaje_url}"
-
-        st.link_button(
-            "📲 Abrir WhatsApp",
-            wa_link
+        telefono_destino = f"56{telefono_cliente}"
+        
+        wa_link = (
+            f"https://web.whatsapp.com/send?"
+            f"phone={telefono_destino}&text={mensaje_url}"
         )
+        
+        if telefono_cliente:
+
+            st.link_button(
+                "📲 Abrir WhatsApp",
+                wa_link
+            )
+
+else:
+
+    st.warning("⚠️ Ingresa el número del cliente.")
         
         # ==========================================
         # PDFs OFICIALES
