@@ -1177,7 +1177,11 @@ st.markdown("## 📄 PDFs Oficiales")
 
 for plan_key in planes_seleccionados:
 
-    nombre_plan = PLANES[plan_key]["nombre"]
+    try:
+        nombre_plan = PLANES[plan_key]["nombre"]
+
+    except:
+        continue
 
     if nombre_plan in PDFS_PLANES:
 
@@ -1202,11 +1206,11 @@ zip_buffer = io.BytesIO()
 with zipfile.ZipFile(zip_buffer, "w") as zip_file:
 
     for plan_key in planes_seleccionados:
-    
-        if plan_key in PLANES:
+
+        try:
             nombre_plan = PLANES[plan_key]["nombre"]
-    
-        else:
+
+        except:
             continue
 
         if nombre_plan in PDFS_PLANES:
