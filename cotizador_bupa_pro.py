@@ -1123,7 +1123,7 @@ with t3:
                 st.markdown("""
 | Red | Lab. | Imag. | Día cama | Pabellón |
 |-----|------|-------|----------|----------|
-| IntegraMédica | +12% | +12% | — | — |
+| IntegraMédica | +12% | +12% | - | - |
 | Clínica Bupa Stgo | +10% | +10% | +10% | +10% |
 | Clínica Bupa Reñaca | +10% | +10% | +10% | +10% |
 """)
