@@ -1262,7 +1262,8 @@ Te comparto tu cotización personalizada de *Bupa Seguros* 🏥
 📱 {asesor}
 📞 {telefono}
 
-_Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._""".replace(",",".")
+_Cotización tarifario Bupa Seguros mayo 2026. UF ${val_uf:,}. El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._
+msg = msg.replace(",", ".")
 
         else:  # Comparativa multi-plan — todos los seleccionados en un solo mensaje
             bloques = ""
