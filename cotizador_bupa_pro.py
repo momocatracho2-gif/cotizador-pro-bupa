@@ -11,6 +11,11 @@ import pandas as pd
 import os, io, zipfile, json, hashlib
 from datetime import date
 from urllib.parse import quote
+try:
+    import requests as _requests
+    _REQUESTS_OK = True
+except ImportError:
+    _REQUESTS_OK = False
 
 st.set_page_config(
     page_title="Cotizador PRO · Bupa Seguros",
@@ -18,6 +23,23 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# ══════════════════════════════════════════════════════════════════
+# UF AUTOMÁTICA — mindicador.cl (cachea 1 hora)
+# ══════════════════════════════════════════════════════════════════
+@st.cache_data(ttl=3600)
+def get_uf_hoy():
+    """Obtiene UF del día desde mindicador.cl con fallback a valor manual."""
+    if not _REQUESTS_OK:
+        return None, None
+    try:
+        r = _requests.get("https://mindicador.cl/api/uf", timeout=5)
+        data = r.json()
+        valor = float(data["serie"][0]["valor"])
+        fecha = data["serie"][0]["fecha"][:10]
+        return valor, fecha
+    except Exception:
+        return None, None
 
 # ══════════════════════════════════════════════════════════════════
 # LOGO BUPA — embebido base64
@@ -590,7 +612,15 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### ⚙️ Config")
-    val_uf = st.number_input("Valor UF ($)", 30000, 50000, 40180, 10)
+    uf_api, uf_fecha = get_uf_hoy()
+    if uf_api:
+        st.success("💱 UF " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (actualizada automáticamente)")
+        uf_default = int(round(uf_api))
+    else:
+        st.warning("⚠️ No se pudo obtener la UF automática. Ingresa el valor manual.")
+        uf_default = 40180
+    val_uf = st.number_input("Valor UF ($)", 30000, 50000, uf_default, 10,
+        help="Se actualiza automáticamente cada hora desde mindicador.cl")
     st.markdown("**Tramo convenios:**")
     tramo_am     = st.selectbox("👴 Adulto Mayor",       list(AM_TARIFAS.keys()),           key="tramo_am")
     tramo_im     = st.selectbox("💊 IntegraMédica 100%", list(IM100_TARIFAS.keys()),         key="tramo_im")
