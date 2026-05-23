@@ -750,7 +750,27 @@ rec = next((p for p in orden_rec if p in precios and precios[p].get("total")), "
 # HEADER
 # ══════════════════════════════════════════════════════════════════
 
-st.title("🏥 Cotizador PRO · Bupa Seguros")
+st.markdown("""
+<div style="
+background:linear-gradient(90deg,#005EB8,#00AEEF);
+padding:22px;
+border-radius:18px;
+margin-bottom:20px;
+box-shadow:0 6px 20px rgba(0,0,0,.10);
+">
+
+<h1 style="
+margin:0;
+color:white !important;
+font-size:34px;
+">
+🏥 Cotizador PRO — Bupa Seguros Chile
+</h1>
+
+<p style="
+margin-top:8px;
+margin-bottom:0;
+color:#E
 h1, h2, h3, h4 = st.columns(4)
 h1.info(f"**Cliente:** {nombre or '(sin nombre)'} · {edad_c} años")
 h2.info(f"**Previsión:** {prevision}")
