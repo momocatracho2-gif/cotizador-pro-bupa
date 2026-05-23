@@ -289,12 +289,13 @@ if st.session_state.es_admin:
         if usuario_sel:
             d = asesores[usuario_sel]
             c1, c2 = st.columns(2)
-            ed_nom  = c1.text_input("Nombre",    value=d["nombre"],           key="ed_nom")
-            ed_tel  = c2.text_input("Teléfono",  value=d["telefono"],         key="ed_tel")
-            ed_ciu  = c1.text_input("Ciudad",    value=d.get("ciudad",""),    key="ed_ciu")
-            ed_mail = c2.text_input("Email",     value=d.get("email",""),     key="ed_mail")
-            ed_pass = c1.text_input("Nueva contraseña (dejar vacío = no cambiar)", key="ed_pass")
-            ed_act  = c2.checkbox("Cuenta activa", value=d.get("activo",True), key="ed_act")
+            # key incluye usuario_sel para que Streamlit resetee los campos al cambiar de asesor
+            ed_nom  = c1.text_input("Nombre",    value=d["nombre"],           key="ed_nom_"  + usuario_sel)
+            ed_tel  = c2.text_input("Teléfono",  value=d["telefono"],         key="ed_tel_"  + usuario_sel)
+            ed_ciu  = c1.text_input("Ciudad",    value=d.get("ciudad",""),    key="ed_ciu_"  + usuario_sel)
+            ed_mail = c2.text_input("Email",     value=d.get("email",""),     key="ed_mail_" + usuario_sel)
+            ed_pass = c1.text_input("Nueva contraseña (dejar vacío = no cambiar)", key="ed_pass_" + usuario_sel)
+            ed_act  = c2.checkbox("Cuenta activa", value=d.get("activo",True), key="ed_act_"  + usuario_sel)
 
             col_g, col_e = st.columns(2)
             if col_g.button("Guardar cambios", type="primary"):
