@@ -836,7 +836,7 @@ if planes_compatibles:
 
 else:
     if edad_c > 75:
-        st.error(f"""🔴 **No hay planes disponibles para {edad_c} años.**
+        st.error(f"⛔ No hay planes disponibles para {edad_c} años.")
 Activa en el panel izquierdo:
 - 👴 **Plan Adulto Mayor** (acepta 60–84 años)""")
     elif edad_c > 64:
