@@ -307,7 +307,7 @@ if st.session_state.es_admin:
                 if ed_pass:
                     asesores[usuario_sel]["password"] = ed_pass
                 save_asesores(asesores)
-                st.success("Cambios preparados. Copia el bloque de abajo en Streamlit Secrets.")
+                st.success("Cambios listos. Copia el bloque TOML de abajo en Streamlit Secrets y haz Reboot.")
 
             if col_e.button("Eliminar asesor", type="secondary"):
                 if usuario_sel == "romulo":
@@ -315,7 +315,19 @@ if st.session_state.es_admin:
                 else:
                     del asesores[usuario_sel]
                     save_asesores(asesores)
-                    st.warning("Asesor eliminado del bloque. Copia el resultado en Streamlit Secrets.")
+                    st.warning("Asesor eliminado. Copia el bloque TOML de abajo en Streamlit Secrets y haz Reboot.")
+
+            # Mostrar TOML siempre visible para cualquier accion realizada
+            if st.session_state.get("secrets_pendientes"):
+                st.markdown("---")
+                st.markdown("#### Paso 1 — Copia este bloque:")
+                st.code(st.session_state["secrets_pendientes"], language="toml")
+                st.markdown("#### Paso 2 — Pégalo aquí:")
+                st.link_button(
+                    "Ir a Streamlit Cloud → Settings → Secrets",
+                    "https://share.streamlit.io"
+                )
+                st.info("Después de pegar, haz clic en Save → luego Reboot app para aplicar los cambios.")
 
     # ── Visualizador de Secrets TOML ──────────────────────────────
     if st.session_state.get("secrets_pendientes"):
