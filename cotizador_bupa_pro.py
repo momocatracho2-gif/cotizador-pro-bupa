@@ -1226,7 +1226,7 @@ with t4:
             es_conv = plan_wa in CONVENIOS
 
             msg = f"""Hola {nc} 👋
-        
+
 Te comparto tu cotización personalizada de *Bupa Seguros* 🏥
 📅 Fecha: {hoy}
 
