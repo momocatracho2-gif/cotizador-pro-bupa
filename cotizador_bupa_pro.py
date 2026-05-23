@@ -835,15 +835,23 @@ if planes_compatibles:
         st.warning("☝️ Marca al menos un plan para ver el detalle y generar el WhatsApp.")
 
 else:
-    if edad_c > 75:
-        st.error(f"⛔ No hay planes disponibles para {edad_c} años.")
-Activa en el panel izquierdo:
-- 👴 **Plan Adulto Mayor** (acepta 60–84 años)""")
-    elif edad_c > 64:
-        st.error(f"""⛔ **No hay planes regulares para {edad_c} años** (máx. 75 años).
-Activa en el panel izquierdo:
-- 👴 **Plan Adulto Mayor** (acepta 60–84 años)
-_(IntegraMédica 100% solo acepta hasta 64 años)_""")
+    # Avisos importantes
+if edad_c > 75:
+
+    st.error(
+        f"⛔ No hay planes disponibles para {edad_c} años.\n\n"
+        "Activa en el panel izquierdo:\n"
+        "👴 **Plan Adulto Mayor** (acepta 60–84 años)"
+    )
+
+elif edad_c > 64:
+
+    st.error(
+        f"⛔ No hay planes regulares para {edad_c} años (máx. 75 años).\n\n"
+        "Activa en el panel izquierdo:\n"
+        "👴 **Plan Adulto Mayor** (acepta 60–84 años)\n"
+        "(IntegraMédica 100% solo acepta hasta 64 años.)"
+    )
     elif f_preex or f_sin_dps:
         st.warning("⚠️ No hay opciones sin DPS con esos filtros. Activa 👴 Adulto Mayor o 💊 IntegraMédica 100%.")
     else:
