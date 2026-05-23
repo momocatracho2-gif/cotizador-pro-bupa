@@ -84,40 +84,87 @@ header[data-testid="stHeader"] {background: transparent !important;}
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════
-# BASE DE ASESORES — archivo JSON local
+# BASE DE ASESORES — Streamlit Secrets (compatible Cloud y local)
 # ══════════════════════════════════════════════════════════════════
-ASESORES_FILE = "asesores.json"
-ADMIN_KEY      = "bupapro2026"   # <-- clave maestra del panel admin
+# En Streamlit Cloud: configura en Settings > Secrets
+# En local: crea el archivo .streamlit/secrets.toml
+#
+# Formato secrets.toml:
+# ADMIN_KEY = "bupapro2026"
+#
+# [asesores.romulo]
+# password = "seguros2026"
+# nombre = "Rómulo Lupi"
+# telefono = "+569 90790892"
+# ciudad = "Santiago"
+# email = "romulo.lupi@bupa.cl"
+# activo = true
+#
+# [asesores.demo]
+# password = "demo123"
+# nombre = "Asesor Demo"
+# telefono = "+569 00000000"
+# ciudad = "Santiago"
+# email = "demo@bupa.cl"
+# activo = true
+# ══════════════════════════════════════════════════════════════════
+
+ADMIN_KEY = st.secrets.get("ADMIN_KEY", "bupapro2026")
 
 def load_asesores():
-    if os.path.exists(ASESORES_FILE):
-        with open(ASESORES_FILE) as f:
-            return json.load(f)
-    # Asesores por defecto si no existe el archivo
-    default = {
-        "romulo": {
-            "password":  "seguros2026",
-            "nombre":    "Rómulo Lupi",
-            "telefono":  "+569 90790892",
-            "ciudad":    "Santiago",
-            "email":     "romulo.lupi@bupa.cl",
-            "activo":    True,
-        },
-        "demo": {
-            "password":  "demo123",
-            "nombre":    "Asesor Demo",
-            "telefono":  "+569 00000000",
-            "ciudad":    "Santiago",
-            "email":     "demo@bupa.cl",
-            "activo":    True,
-        },
-    }
-    save_asesores(default)
-    return default
+    """Carga asesores desde Streamlit Secrets."""
+    try:
+        raw = st.secrets.get("asesores", {})
+        asesores = {}
+        for usuario, datos in raw.items():
+            asesores[usuario] = {
+                "password":  datos.get("password", ""),
+                "nombre":    datos.get("nombre", usuario),
+                "telefono":  datos.get("telefono", ""),
+                "ciudad":    datos.get("ciudad", "Santiago"),
+                "email":     datos.get("email", ""),
+                "activo":    datos.get("activo", True),
+            }
+        if not asesores:
+            raise ValueError("Sin asesores en secrets")
+        return asesores
+    except Exception:
+        # Fallback local si no hay secrets configurados
+        return {
+            "romulo": {
+                "password": "seguros2026",
+                "nombre":   "Rómulo Lupi",
+                "telefono": "+569 90790892",
+                "ciudad":   "Santiago",
+                "email":    "romulo.lupi@bupa.cl",
+                "activo":   True,
+            },
+            "demo": {
+                "password": "demo123",
+                "nombre":   "Asesor Demo",
+                "telefono": "+569 00000000",
+                "ciudad":   "Santiago",
+                "email":    "demo@bupa.cl",
+                "activo":   True,
+            },
+        }
 
 def save_asesores(data):
-    with open(ASESORES_FILE, "w") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    """
+    En Streamlit Cloud los secrets se editan manualmente en el panel.
+    Esta función muestra las instrucciones para copiar y pegar.
+    """
+    lines = ['ADMIN_KEY = "' + ADMIN_KEY + '"', "", "[asesores]"]
+    for usuario, d in data.items():
+        lines.append("")
+        lines.append("[asesores." + usuario + "]")
+        lines.append('password = "' + d.get("password","") + '"')
+        lines.append('nombre = "' + d.get("nombre","") + '"')
+        lines.append('telefono = "' + d.get("telefono","") + '"')
+        lines.append('ciudad = "' + d.get("ciudad","Santiago") + '"')
+        lines.append('email = "' + d.get("email","") + '"')
+        lines.append("activo = " + ("true" if d.get("activo",True) else "false"))
+    st.session_state["secrets_pendientes"] = "\n".join(lines)
 
 # ══════════════════════════════════════════════════════════════════
 # LOGIN / ADMIN
@@ -234,8 +281,7 @@ if st.session_state.es_admin:
                     "activo":    True,
                 }
                 save_asesores(asesores)
-                st.success(f"Asesor '{nu_nom}' creado correctamente.")
-                st.rerun()
+                st.success("Asesor preparado. Copia el bloque de abajo en Streamlit Secrets.")
 
     with tab_editar:
         st.markdown("### Editar o desactivar asesor")
@@ -260,8 +306,7 @@ if st.session_state.es_admin:
                 if ed_pass:
                     asesores[usuario_sel]["password"] = ed_pass
                 save_asesores(asesores)
-                st.success("Cambios guardados.")
-                st.rerun()
+                st.success("Cambios preparados. Copia el bloque de abajo en Streamlit Secrets.")
 
             if col_e.button("Eliminar asesor", type="secondary"):
                 if usuario_sel == "romulo":
@@ -269,13 +314,21 @@ if st.session_state.es_admin:
                 else:
                     del asesores[usuario_sel]
                     save_asesores(asesores)
-                    st.warning(f"Asesor '{usuario_sel}' eliminado.")
-                    st.rerun()
+                    st.warning("Asesor eliminado del bloque. Copia el resultado en Streamlit Secrets.")
+
+    # ── Visualizador de Secrets TOML ──────────────────────────────
+    if st.session_state.get("secrets_pendientes"):
+        st.markdown("---")
+        st.markdown("### 📋 Copia esto en Streamlit Cloud → Settings → Secrets")
+        st.info("Ve a tu app en share.streamlit.io → Settings → Secrets y reemplaza todo con este bloque:")
+        st.code(st.session_state["secrets_pendientes"], language="toml")
+        st.warning("Después de pegar los secrets, haz Reboot de la app en Streamlit Cloud para aplicar los cambios.")
 
     st.markdown("---")
     if st.button("Cerrar sesión admin"):
         st.session_state.login_ok = False
         st.session_state.es_admin = False
+        st.session_state.pop("secrets_pendientes", None)
         st.rerun()
     st.stop()
 
