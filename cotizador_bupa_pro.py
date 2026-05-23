@@ -77,35 +77,35 @@ if "login_ok" not in st.session_state:
     st.session_state.login_ok = False
 
 if not st.session_state.login_ok:
-    st.title("Acceso Cotizador PRO")
+    st.title("🔒 Acceso Cotizador PRO")
     usuario = st.text_input("Usuario")
-    clave   = st.text_input("Contrasena", type="password")
+    clave   = st.text_input("Contraseña", type="password")
     if st.button("Ingresar"):
         if usuario in USUARIOS and USUARIOS[usuario] == clave:
             st.session_state.login_ok = True
             st.rerun()
         else:
-            st.error("Usuario o contrasena incorrecta")
+            st.error("Usuario o contraseña incorrecta")
     st.stop()
 
 # ══════════════════════════════════════════════════════════════════
 # PDFs
 # ══════════════════════════════════════════════════════════════════
 PDFS_PLANES = {
-    "Bupa + Proteccion 70/25":    "pdfs/Seguro BMP Bupa + Proteccion 70-25.pdf",
-    "Bupa + Proteccion 70/70":    "pdfs/Seguro BMP Bupa + Proteccion 70-70.pdf",
-    "Bupa + Proteccion 80/70":    "pdfs/Seguro BMP Bupa + Proteccion 80-70.pdf",
-    "Bupa Ambulatorio 70":        "pdfs/Seguro BMPA70 Bupa Ambulatorio + Proteccion.pdf",
-    "Bupa Cuidado Total 60":      "pdfs/Seguro BCT Bupa Cuidado Total 60.pdf",
-    "Bupa Cuidado Total 70":      "pdfs/Seguro BCT Bupa Cuidado Total 70.pdf",
-    "Bupa Cuidado Total 80":      "pdfs/Seguro BCT Bupa Cuidado Total 80.pdf",
-    "Bupa MultiSalud":            "pdfs/Seguro BMS Bupa MultiSalud.pdf",
-    "Bupa MultiSalud Pro":        "pdfs/Seguro BMS Bupa MultiSalud Pro.pdf",
-    "Dental IntegraMediaca":      "pdfs/Plan Dental IntegraMedica 68%.pdf",
-    "IntegraMediaca 100%":        "pdfs/Plan IntegraMedica 100%.pdf",
-    "Plan Adulto Mayor 70%":      "pdfs/Plan IntegraMedica Adulto Mayor 70.pdf",
-    "Bupa Complementa":           "pdfs/Seguro BCO Bupa Complementa.pdf",
-    "PYME Digital":               "pdfs/PYME Digital.pdf",
+    "Bupa + Protección 70/25":  "pdfs/Seguro BMP Bupa + Proteccion 70-25.pdf",
+    "Bupa + Protección 70/70":  "pdfs/Seguro BMP Bupa + Proteccion 70-70.pdf",
+    "Bupa + Protección 80/70":  "pdfs/Seguro BMP Bupa + Proteccion 80-70.pdf",
+    "Bupa Ambulatorio 70":      "pdfs/Seguro BMPA70 Bupa Ambulatorio + Proteccion.pdf",
+    "Bupa Cuidado Total 60":    "pdfs/Seguro BCT Bupa Cuidado Total 60.pdf",
+    "Bupa Cuidado Total 70":    "pdfs/Seguro BCT Bupa Cuidado Total 70.pdf",
+    "Bupa Cuidado Total 80":    "pdfs/Seguro BCT Bupa Cuidado Total 80.pdf",
+    "Bupa MultiSalud":          "pdfs/Seguro BMS Bupa MultiSalud.pdf",
+    "Bupa MultiSalud Pro":      "pdfs/Seguro BMS Bupa MultiSalud Pro.pdf",
+    "Dental IntegraMédica":     "pdfs/Plan Dental IntegraMedica 68%.pdf",
+    "IntegraMédica 100%":       "pdfs/Plan IntegraMedica 100%.pdf",
+    "Plan Adulto Mayor 70%":    "pdfs/Plan IntegraMedica Adulto Mayor 70.pdf",
+    "Bupa Complementa":         "pdfs/Seguro BCO Bupa Complementa.pdf",
+    "PYME Digital":             "pdfs/PYME Digital.pdf",
 }
 
 # ══════════════════════════════════════════════════════════════════
@@ -113,7 +113,7 @@ PDFS_PLANES = {
 # ══════════════════════════════════════════════════════════════════
 PLANES = {
     "70/25": {
-        "nombre":    "Bupa + Proteccion 70/25",
+        "nombre":    "Bupa + Protección 70/25",
         "emoji":     "🔵",
         "prevision": ["FONASA"],
         "f_cat":True, "f_libre":False, "f_maternidad":True,
@@ -122,19 +122,19 @@ PLANES = {
                         "46-55":1.24,"56-59":1.41,"60-64":1.52,"65-70":2.05,"71-75":2.88},
         "dependiente": {"0-2":0.49,"3-17":0.49,"18-25":0.70,"26-35":0.92,"36-45":1.06,
                         "46-55":1.20,"56-59":1.37,"60-64":1.48,"65-70":2.01,"71-75":2.84},
-        "hosp":"70%","amb":"25%","cat":"100% hasta UF 9.500","tope_base":"UF 500/anio",
-        "tope_cat":"UF 9.500/anio","muerte":"UF 500","red":"Clinica Bupa Santiago + IntegraMediaca",
-        "maternidad":"70%","oncologia":"Segun prestaciones medicas cubiertas del plan",
-        "dental":"62% dcto IntegraMediaca",
-        "medicamentos":"50% generico / 20% marca (tope $15.000/mes)",
-        "ded_amb":"UF 0,5/anio","ded_hosp":"UF 5/anio","dps":True,"salud_mental":False,
-        "para_quien":"Presupuesto limitado. Prioriza hospitalizacion. Uso ambulatorio bajo.",
-        "no_para":"Quienes van mucho al medico ambulatorio (cubre solo 25%).",
-        "carencias":"Bariatrica, ocular laser, rinolaringologica: 1 anio.",
-        "tag":"Precio minimo con catastrofico · FONASA",
+        "hosp":"70%","amb":"25%","cat":"✅ 100% hasta UF 9.500","tope_base":"UF 500/año",
+        "tope_cat":"UF 9.500/año","muerte":"✅ UF 500","red":"Clínica Bupa Santiago + IntegraMédica",
+        "maternidad":"70%","oncologia":"Según prestaciones médicas cubiertas del plan",
+        "dental":"62% dcto IntegraMédica",
+        "medicamentos":"50% genérico / 20% marca (tope $15.000/mes)",
+        "ded_amb":"UF 0,5/año","ded_hosp":"UF 5/año","dps":True,"salud_mental":False,
+        "para_quien":"Presupuesto limitado. Prioriza hospitalización. Uso ambulatorio bajo.",
+        "no_para":"Quienes van mucho al médico ambulatorio (cubre solo 25%).",
+        "carencias":"Bariátrica, ocular láser, rinolaringológica: 1 año.",
+        "tag":"Precio mínimo con catastrófico · FONASA",
     },
     "70/70": {
-        "nombre":    "Bupa + Proteccion 70/70",
+        "nombre":    "Bupa + Protección 70/70",
         "emoji":     "🟣",
         "prevision": ["FONASA"],
         "f_cat":True, "f_libre":False, "f_maternidad":True,
@@ -143,19 +143,19 @@ PLANES = {
                         "46-55":1.69,"56-59":1.90,"60-64":2.05,"65-70":2.75,"71-75":3.85},
         "dependiente": {"0-2":0.64,"3-17":0.64,"18-25":0.97,"26-35":1.26,"36-45":1.45,
                         "46-55":1.65,"56-59":1.85,"60-64":2.00,"65-70":2.71,"71-75":3.81},
-        "hosp":"70%","amb":"70%","cat":"100% hasta UF 9.500","tope_base":"UF 500/anio",
-        "tope_cat":"UF 9.500/anio","muerte":"UF 500","red":"Clinica Bupa Santiago + IntegraMediaca",
-        "maternidad":"70%","oncologia":"Segun prestaciones medicas cubiertas del plan",
-        "dental":"62% dcto IntegraMediaca",
-        "medicamentos":"50% generico / 20% marca (tope $15.000/mes)",
-        "ded_amb":"UF 0,5/anio","ded_hosp":"UF 5/anio","dps":True,"salud_mental":False,
+        "hosp":"70%","amb":"70%","cat":"✅ 100% hasta UF 9.500","tope_base":"UF 500/año",
+        "tope_cat":"UF 9.500/año","muerte":"✅ UF 500","red":"Clínica Bupa Santiago + IntegraMédica",
+        "maternidad":"70%","oncologia":"Según prestaciones médicas cubiertas del plan",
+        "dental":"62% dcto IntegraMédica",
+        "medicamentos":"50% genérico / 20% marca (tope $15.000/mes)",
+        "ded_amb":"UF 0,5/año","ded_hosp":"UF 5/año","dps":True,"salud_mental":False,
         "para_quien":"Familias con uso ambulatorio frecuente. Cobertura equilibrada.",
-        "no_para":"Quien busca el maximo porcentaje hospitalario.",
-        "carencias":"Bariatrica, ocular laser, rinolaringologica: 1 anio.",
-        "tag":"El mas equilibrado · FONASA",
+        "no_para":"Quien busca el máximo porcentaje hospitalario.",
+        "carencias":"Bariátrica, ocular láser, rinolaringológica: 1 año.",
+        "tag":"⭐ El más equilibrado · FONASA",
     },
     "80/70": {
-        "nombre":    "Bupa + Proteccion 80/70",
+        "nombre":    "Bupa + Protección 80/70",
         "emoji":     "🔴",
         "prevision": ["FONASA"],
         "f_cat":True, "f_libre":False, "f_maternidad":True,
@@ -164,16 +164,16 @@ PLANES = {
                         "46-55":2.01,"56-59":2.25,"60-64":2.43,"65-70":3.27,"71-75":4.57},
         "dependiente": {"0-2":0.76,"3-17":0.76,"18-25":1.16,"26-35":1.50,"36-45":1.73,
                         "46-55":1.96,"56-59":2.21,"60-64":2.39,"65-70":3.22,"71-75":4.53},
-        "hosp":"80%","amb":"70%","cat":"100% hasta UF 9.500","tope_base":"UF 500/anio",
-        "tope_cat":"UF 9.500/anio","muerte":"UF 500","red":"Clinica Bupa Santiago + IntegraMediaca",
-        "maternidad":"80%","oncologia":"Segun prestaciones medicas cubiertas del plan",
-        "dental":"62% dcto IntegraMediaca",
-        "medicamentos":"50% generico / 20% marca (tope $15.000/mes)",
-        "ded_amb":"UF 0,5/anio","ded_hosp":"UF 5/anio","dps":True,"salud_mental":False,
-        "para_quien":"Maxima cobertura en red Bupa. Historial de cirugias o enfermedades cronicas.",
-        "no_para":"Quien busca red mas amplia que Bupa/IntegraMediaca.",
-        "carencias":"Bariatrica, ocular laser, rinolaringologica: 1 anio.",
-        "tag":"Mayor cobertura hospitalaria · FONASA",
+        "hosp":"80%","amb":"70%","cat":"✅ 100% hasta UF 9.500","tope_base":"UF 500/año",
+        "tope_cat":"UF 9.500/año","muerte":"✅ UF 500","red":"Clínica Bupa Santiago + IntegraMédica",
+        "maternidad":"80%","oncologia":"Según prestaciones médicas cubiertas del plan",
+        "dental":"62% dcto IntegraMédica",
+        "medicamentos":"50% genérico / 20% marca (tope $15.000/mes)",
+        "ded_amb":"UF 0,5/año","ded_hosp":"UF 5/año","dps":True,"salud_mental":False,
+        "para_quien":"Máxima cobertura en red Bupa. Historial de cirugías o enfermedades crónicas.",
+        "no_para":"Quien busca red más amplia que Bupa/IntegraMédica.",
+        "carencias":"Bariátrica, ocular láser, rinolaringológica: 1 año.",
+        "tag":"⭐ Mayor cobertura hospitalaria · FONASA",
     },
     "AMB70": {
         "nombre":    "Bupa Ambulatorio 70",
@@ -185,15 +185,15 @@ PLANES = {
                         "46-55":0.77,"56-59":0.86,"60-64":0.91,"65-70":0.96,"71-75":1.26},
         "dependiente": {"0-2":0.86,"3-17":0.41,"18-25":0.57,"26-35":0.60,"36-45":0.68,
                         "46-55":0.77,"56-59":0.86,"60-64":0.91,"65-70":0.96,"71-75":1.26},
-        "hosp":"No cubre","amb":"70%","cat":"No incluye","tope_base":"UF 250/anio",
-        "tope_cat":"No aplica","muerte":"No incluye","red":"Clinica Bupa Santiago + IntegraMediaca",
-        "maternidad":"No cubre","oncologia":"No cubre","dental":"62% dcto IntegraMediaca",
-        "medicamentos":"No incluye","ded_amb":"UF 0,5/anio","ded_hosp":"No aplica",
+        "hosp":"❌ No cubre","amb":"70%","cat":"❌ No incluye","tope_base":"UF 250/año",
+        "tope_cat":"— No aplica","muerte":"❌ No incluye","red":"Clínica Bupa Santiago + IntegraMédica",
+        "maternidad":"❌ No cubre","oncologia":"❌ No cubre","dental":"62% dcto IntegraMédica",
+        "medicamentos":"No incluye","ded_amb":"UF 0,5/año","ded_hosp":"— No aplica",
         "dps":True,"salud_mental":False,
-        "para_quien":"Jovenes sanos. Complemento basico. Presupuesto muy ajustado.",
-        "no_para":"Personas con riesgo de hospitalizacion, embarazo o cirugias.",
-        "carencias":"No aplica (no cubre hospitalizacion).",
-        "tag":"Solo ambulatorio · Precio minimo · FONASA",
+        "para_quien":"Jóvenes sanos. Complemento básico. Presupuesto muy ajustado.",
+        "no_para":"Personas con riesgo de hospitalización, embarazo o cirugías.",
+        "carencias":"No aplica (no cubre hospitalización).",
+        "tag":"Solo ambulatorio · Precio mínimo · FONASA",
     },
     "MULTI": {
         "nombre":    "Bupa MultiSalud",
@@ -205,16 +205,16 @@ PLANES = {
                         "46-55":2.76,"56-59":3.28,"60-64":3.62,"65-70":3.96,"71-75":5.29},
         "dependiente": {"0-2":1.35,"3-17":0.94,"18-25":1.40,"26-35":1.80,"36-45":2.07,
                         "46-55":2.76,"56-59":3.28,"60-64":3.62,"65-70":3.96,"71-75":5.29},
-        "hosp":"90%/80%/50% (segun red)","amb":"70%/60%/50% (segun red)",
-        "cat":"Extension catastrofica en 2 capas hasta UF 7.500","tope_base":"UF 1.500/anio",
-        "tope_cat":"UF 7.500 total (Capa 1 UF 2.500 + Capa 2 UF 5.000)","muerte":"No incluye",
-        "red":"Red Pref: Bupa+Renaca+IntegraMediaca | Red 1: Davila+Interclinica | Red 2: Sta.Maria+otros",
-        "maternidad":"90%/80%/50%","oncologia":"90%/80%/50%","dental":"62% dcto IntegraMediaca",
-        "medicamentos":"50% generico / 20% marca (tope $15.000/mes)",
-        "ded_amb":"UF 1/anio","ded_hosp":"UF 5/anio","dps":True,"salud_mental":True,
-        "para_quien":"FONASA B,C,D con acceso a Davila, Santa Maria. Red ampliada + salud mental.",
-        "no_para":"Quien busca maxima cobertura en red unica.",
-        "carencias":"Bariatrica, ocular laser, rinolaringologica, reasignacion sexo: 1 anio.",
+        "hosp":"90%/80%/50% (según red)","amb":"70%/60%/50% (según red)",
+        "cat":"✅ Extensión catastrófica en 2 capas hasta UF 7.500","tope_base":"UF 1.500/año",
+        "tope_cat":"UF 7.500 total (Capa 1 UF 2.500 + Capa 2 UF 5.000)","muerte":"❌ No incluye",
+        "red":"Red Pref: Bupa+Reñaca+IntegraMédica | Red 1: Dávila+Interclinica | Red 2: Sta.María+otros",
+        "maternidad":"90%/80%/50%","oncologia":"90%/80%/50%","dental":"62% dcto IntegraMédica",
+        "medicamentos":"50% genérico / 20% marca (tope $15.000/mes)",
+        "ded_amb":"UF 1/año","ded_hosp":"UF 5/año","dps":True,"salud_mental":True,
+        "para_quien":"FONASA B,C,D con acceso a Dávila, Santa María. Red ampliada + salud mental.",
+        "no_para":"Quien busca máxima cobertura en red única.",
+        "carencias":"Bariátrica, ocular láser, rinolaringológica, reasignación sexo: 1 año.",
         "tag":"Red ampliada + Salud mental · FONASA",
     },
     "MULTIPRO": {
@@ -227,17 +227,17 @@ PLANES = {
                         "46-55":3.24,"56-59":3.93,"60-64":4.30,"65-70":4.50,"71-75":6.22},
         "dependiente": {"0-2":1.58,"3-17":1.05,"18-25":1.71,"26-35":2.07,"36-45":2.44,
                         "46-55":3.24,"56-59":3.93,"60-64":4.30,"65-70":4.50,"71-75":6.22},
-        "hosp":"90%/80%/70% (segun red)","amb":"90%/70%/60% (segun red)",
-        "cat":"Extension catastrofica en 2 capas hasta UF 7.500","tope_base":"UF 1.500/anio",
-        "tope_cat":"UF 7.500 total (Capa 1 UF 2.500 + Capa 2 UF 5.000)","muerte":"No incluye",
-        "red":"Red Pref: Bupa+Renaca+IntegraMediaca | Red 1: Davila+Interclinica | Red 2: Sta.Maria+otros",
-        "maternidad":"90%/80%/70%","oncologia":"90%/80%/70%","dental":"62% dcto IntegraMediaca",
-        "medicamentos":"50% generico / 20% marca (tope $15.000/mes)",
-        "ded_amb":"UF 1/anio","ded_hosp":"UF 5/anio","dps":True,"salud_mental":True,
+        "hosp":"90%/80%/70% (según red)","amb":"90%/70%/60% (según red)",
+        "cat":"✅ Extensión catastrófica en 2 capas hasta UF 7.500","tope_base":"UF 1.500/año",
+        "tope_cat":"UF 7.500 total (Capa 1 UF 2.500 + Capa 2 UF 5.000)","muerte":"❌ No incluye",
+        "red":"Red Pref: Bupa+Reñaca+IntegraMédica | Red 1: Dávila+Interclinica | Red 2: Sta.María+otros",
+        "maternidad":"90%/80%/70%","oncologia":"90%/80%/70%","dental":"62% dcto IntegraMédica",
+        "medicamentos":"50% genérico / 20% marca (tope $15.000/mes)",
+        "ded_amb":"UF 1/año","ded_hosp":"UF 5/año","dps":True,"salud_mental":True,
         "para_quien":"FONASA B,C,D con la mejor cobertura posible + red ampliada + salud mental.",
         "no_para":"Presupuesto ajustado.",
-        "carencias":"Bariatrica, ocular laser, rinolaringologica, reasignacion sexo: 1 anio.",
-        "tag":"Mayor cobertura Pro · FONASA",
+        "carencias":"Bariátrica, ocular láser, rinolaringológica, reasignación sexo: 1 año.",
+        "tag":"⭐ Mayor cobertura Pro · FONASA",
     },
     "BCT60": {
         "nombre":    "Bupa Cuidado Total 60",
@@ -249,17 +249,17 @@ PLANES = {
                         "46-55":1.16,"56-59":1.22,"60-64":1.32,"65-70":1.75,"71-75":2.44},
         "dependiente": {"0-2":0.75,"3-17":0.75,"18-25":0.86,"26-35":1.04,"36-45":1.04,
                         "46-55":1.16,"56-59":1.22,"60-64":1.32,"65-70":1.75,"71-75":2.44},
-        "hosp":"60%","amb":"60%","cat":"No incluye","tope_base":"UF 250/anio",
-        "tope_cat":"No aplica","muerte":"No incluye","red":"Libre eleccion + cobertura extra Red Bupa",
-        "maternidad":"60%","oncologia":"Segun prestaciones medicas cubiertas del plan",
-        "dental":"62% dcto IntegraMediaca",
-        "medicamentos":"50% generico / 30% marca con receta (tope $25.000/mes)",
-        "ded_amb":"UF 1/anio (gratis en Red Bupa)","ded_hosp":"UF 1/anio (gratis en Red Bupa)",
+        "hosp":"60%","amb":"60%","cat":"❌ No incluye","tope_base":"UF 250/año",
+        "tope_cat":"— No aplica","muerte":"❌ No incluye","red":"Libre elección + cobertura extra Red Bupa",
+        "maternidad":"60%","oncologia":"Según prestaciones médicas cubiertas del plan",
+        "dental":"62% dcto IntegraMédica",
+        "medicamentos":"50% genérico / 30% marca con receta (tope $25.000/mes)",
+        "ded_amb":"UF 1/año (gratis en Red Bupa)","ded_hosp":"UF 1/año (gratis en Red Bupa)",
         "dps":True,"salud_mental":True,
-        "para_quien":"ISAPRE o FONASA que quieren libre eleccion. Salud mental incluida.",
-        "no_para":"Quien necesita extension catastrofica o tiene preexistencias.",
-        "carencias":"Bariatrica, Septoplastia, Disforia de Genero: 1 anio.",
-        "tag":"Libre eleccion · Salud mental · ISAPRE y FONASA",
+        "para_quien":"ISAPRE o FONASA que quieren libre elección. Salud mental incluida.",
+        "no_para":"Quien necesita extensión catastrófica o tiene preexistencias.",
+        "carencias":"Bariátrica, Septoplastía, Disforia de Género: 1 año.",
+        "tag":"Libre elección · Salud mental · ISAPRE y FONASA",
     },
     "BCT70": {
         "nombre":    "Bupa Cuidado Total 70",
@@ -271,17 +271,17 @@ PLANES = {
                         "46-55":1.46,"56-59":1.56,"60-64":1.68,"65-70":2.24,"71-75":3.12},
         "dependiente": {"0-2":0.92,"3-17":0.92,"18-25":1.09,"26-35":1.31,"36-45":1.31,
                         "46-55":1.46,"56-59":1.56,"60-64":1.68,"65-70":2.24,"71-75":3.12},
-        "hosp":"70%","amb":"70%","cat":"No incluye","tope_base":"UF 400/anio",
-        "tope_cat":"No aplica","muerte":"No incluye","red":"Libre eleccion + cobertura extra Red Bupa",
-        "maternidad":"70%","oncologia":"Segun prestaciones medicas cubiertas del plan",
-        "dental":"62% dcto IntegraMediaca",
-        "medicamentos":"50% generico / 30% marca con receta (tope $25.000/mes)",
-        "ded_amb":"UF 1/anio (gratis en Red Bupa)","ded_hosp":"UF 1/anio (gratis en Red Bupa)",
+        "hosp":"70%","amb":"70%","cat":"❌ No incluye","tope_base":"UF 400/año",
+        "tope_cat":"— No aplica","muerte":"❌ No incluye","red":"Libre elección + cobertura extra Red Bupa",
+        "maternidad":"70%","oncologia":"Según prestaciones médicas cubiertas del plan",
+        "dental":"62% dcto IntegraMédica",
+        "medicamentos":"50% genérico / 30% marca con receta (tope $25.000/mes)",
+        "ded_amb":"UF 1/año (gratis en Red Bupa)","ded_hosp":"UF 1/año (gratis en Red Bupa)",
         "dps":True,"salud_mental":True,
-        "para_quien":"ISAPRE o FONASA que quieren libre eleccion equilibrada. Tope UF 400.",
-        "no_para":"Quien necesita extension catastrofica o tiene preexistencias.",
-        "carencias":"Bariatrica, Septoplastia, Disforia de Genero: 1 anio.",
-        "tag":"Libre eleccion equilibrada · ISAPRE y FONASA",
+        "para_quien":"ISAPRE o FONASA que quieren libre elección equilibrada. Tope UF 400.",
+        "no_para":"Quien necesita extensión catastrófica o tiene preexistencias.",
+        "carencias":"Bariátrica, Septoplastía, Disforia de Género: 1 año.",
+        "tag":"⭐ Libre elección equilibrada · ISAPRE y FONASA",
     },
     "BCT80": {
         "nombre":    "Bupa Cuidado Total 80",
@@ -293,17 +293,17 @@ PLANES = {
                         "46-55":1.79,"56-59":1.93,"60-64":2.08,"65-70":2.78,"71-75":3.87},
         "dependiente": {"0-2":1.10,"3-17":1.10,"18-25":1.35,"26-35":1.61,"36-45":1.61,
                         "46-55":1.79,"56-59":1.93,"60-64":2.08,"65-70":2.78,"71-75":3.87},
-        "hosp":"80%","amb":"80%","cat":"No incluye","tope_base":"UF 600/anio",
-        "tope_cat":"No aplica","muerte":"No incluye","red":"Libre eleccion + cobertura extra Red Bupa",
-        "maternidad":"80%","oncologia":"Segun prestaciones medicas cubiertas del plan",
-        "dental":"62% dcto IntegraMediaca",
-        "medicamentos":"50% generico / 30% marca con receta (tope $25.000/mes)",
-        "ded_amb":"UF 1/anio (gratis en Red Bupa)","ded_hosp":"UF 1/anio (gratis en Red Bupa)",
+        "hosp":"80%","amb":"80%","cat":"❌ No incluye","tope_base":"UF 600/año",
+        "tope_cat":"— No aplica","muerte":"❌ No incluye","red":"Libre elección + cobertura extra Red Bupa",
+        "maternidad":"80%","oncologia":"Según prestaciones médicas cubiertas del plan",
+        "dental":"62% dcto IntegraMédica",
+        "medicamentos":"50% genérico / 30% marca con receta (tope $25.000/mes)",
+        "ded_amb":"UF 1/año (gratis en Red Bupa)","ded_hosp":"UF 1/año (gratis en Red Bupa)",
         "dps":True,"salud_mental":True,
-        "para_quien":"ISAPRE o FONASA que quieren maxima cobertura con libre eleccion. Tope UF 600.",
-        "no_para":"Quien necesita extension catastrofica o tiene preexistencias.",
-        "carencias":"Bariatrica, Septoplastia, Disforia de Genero: 1 anio.",
-        "tag":"Maxima cobertura libre eleccion · ISAPRE y FONASA",
+        "para_quien":"ISAPRE o FONASA que quieren máxima cobertura con libre elección. Tope UF 600.",
+        "no_para":"Quien necesita extensión catastrófica o tiene preexistencias.",
+        "carencias":"Bariátrica, Septoplastía, Disforia de Género: 1 año.",
+        "tag":"⭐ Máxima cobertura libre elección · ISAPRE y FONASA",
     },
     "COMPLEMENTA": {
         "nombre":    "Bupa Complementa",
@@ -316,17 +316,17 @@ PLANES = {
         "dependiente": {"0-2":0.45,"3-17":0.45,"18-25":0.51,"26-35":0.63,"36-45":0.63,
                         "46-55":0.70,"56-59":0.83,"60-64":0.89,"65-70":1.19,"71-75":None},
         "hosp":"Mismo % que tu plan ISAPRE","amb":"Mismo % que tu plan ISAPRE (solo red Bupa)",
-        "cat":"No incluye","tope_base":"UF 500/anio",
-        "tope_cat":"No aplica","muerte":"No incluye",
-        "red":"Hosp: Libre eleccion (excl. Clinica U. Andes, Las Condes, Alemana) | Amb: solo Bupa Stgo, Renaca e IntegraMediaca",
+        "cat":"❌ No incluye","tope_base":"UF 500/año",
+        "tope_cat":"— No aplica","muerte":"❌ No incluye",
+        "red":"Hosp: Libre elección (excl. Clínica U. Andes, Las Condes, Alemana) | Amb: solo Bupa Stgo, Reñaca e IntegraMédica",
         "maternidad":"Mismo % que tu plan ISAPRE","oncologia":"Mismo % que tu plan ISAPRE",
         "dental":"No incluye","medicamentos":"No incluye",
         "ded_amb":"Sin deducible","ded_hosp":"Sin deducible (sin BMI)",
         "dps":True,"salud_mental":True,
         "para_quien":"ISAPRE que quiere cubrir el copago que su plan no paga. Sin deducible ni BMI.",
-        "no_para":"FONASA. Quien quiere libre eleccion ambulatoria amplia (solo en red Bupa).",
-        "carencias":"Bariatrica, rinolaringologica, reasignacion sexo, vasectomia, reduccion mamaria: 1 anio.",
-        "tag":"Exclusivo ISAPRE · Cubre tu copago · Sin deducible ni BMI",
+        "no_para":"FONASA. Quien quiere libre elección ambulatoria amplia (solo en red Bupa).",
+        "carencias":"Bariátrica, rinolaringológica, reasignación sexo, vasectomía, reducción mamaria: 1 año.",
+        "tag":"⭐ Exclusivo ISAPRE · Cubre tu copago · Sin deducible ni BMI",
     },
 }
 
@@ -367,56 +367,56 @@ CONVENIOS = {
         "prevision":["FONASA","ISAPRE"],
         "f_cat":False,"f_libre":False,"f_maternidad":False,
         "f_salud_mental":False,"f_quirurgico":False,"f_sin_dps":True,
-        "dps":False,"tag":"Solo ambulatorio · Sin DPS · 60-84 anios",
-        "hosp":"No cubre","amb":"70%","cat":"No incluye",
-        "tope_base":"UF 25/beneficiario/anio","tope_cat":"No aplica",
-        "muerte":"No incluye","maternidad":"No cubre","oncologia":"No cubre",
-        "salud_mental":False,"red":"Solo IntegraMediaca nacional",
+        "dps":False,"tag":"Solo ambulatorio · Sin DPS · 60–84 años",
+        "hosp":"❌ No cubre","amb":"70%","cat":"❌ No incluye",
+        "tope_base":"UF 25/beneficiario/año","tope_cat":"— No aplica",
+        "muerte":"❌ No incluye","maternidad":"❌ No cubre","oncologia":"❌ No cubre",
+        "salud_mental":False,"red":"Solo IntegraMédica nacional",
         "dental":"No incluye",
-        "medicamentos":"60% generico / 40% marca con receta (tope $20.000/mes)",
-        "ded_amb":"Sin deducible","ded_hosp":"No aplica",
-        "rescate_vital":"Unidad Coronaria Movil (UCM) · Activacion ilimitada riesgo vital inminente · 2 activaciones/anio riesgo vital · Fono: 223914444",
-        "para_quien":"60-84 anios con preexistencias. Sin DPS. Ingreso inmediato.",
-        "no_para":"Quien necesita hospitalizacion o cirugias.",
-        "carencias":"Sin carencias — vigencia desde contratacion.",
+        "medicamentos":"60% genérico / 40% marca con receta (tope $20.000/mes)",
+        "ded_amb":"Sin deducible","ded_hosp":"— No aplica",
+        "rescate_vital":"🚑 Unidad Coronaria Móvil (UCM) · Activación ilimitada riesgo vital inminente · 2 activaciones/año riesgo vital · Fono: 223914444",
+        "para_quien":"60–84 años con preexistencias. Sin DPS. Ingreso inmediato.",
+        "no_para":"Quien necesita hospitalización o cirugías.",
+        "carencias":"Sin carencias — vigencia desde contratación.",
         "es_convenio":True,"tarifas":AM_TARIFAS,
     },
     "IM100": {
-        "nombre":"IntegraMediaca 100%","emoji":"💊",
+        "nombre":"IntegraMédica 100%","emoji":"💊",
         "prevision":["FONASA","ISAPRE"],
         "f_cat":False,"f_libre":False,"f_maternidad":False,
         "f_salud_mental":False,"f_quirurgico":False,"f_sin_dps":True,
         "dps":False,"tag":"100% ambulatorio · Sin DPS · Cubre preexistencias",
-        "hosp":"No cubre","amb":"100%","cat":"No incluye",
-        "tope_base":"UF 60/anio","tope_cat":"No aplica",
-        "muerte":"No incluye","maternidad":"No cubre","oncologia":"No cubre",
-        "salud_mental":False,"red":"Solo IntegraMediaca nacional",
-        "dental":"62% dcto IntegraMediaca",
-        "medicamentos":"50% generico / 20% marca (tope $15.000/mes)",
-        "ded_amb":"Sin deducible","ded_hosp":"No aplica",
+        "hosp":"❌ No cubre","amb":"100%","cat":"❌ No incluye",
+        "tope_base":"UF 60/año","tope_cat":"— No aplica",
+        "muerte":"❌ No incluye","maternidad":"❌ No cubre","oncologia":"❌ No cubre",
+        "salud_mental":False,"red":"Solo IntegraMédica nacional",
+        "dental":"62% dcto IntegraMédica",
+        "medicamentos":"50% genérico / 20% marca (tope $15.000/mes)",
+        "ded_amb":"Sin deducible","ded_hosp":"— No aplica",
         "para_quien":"Cualquier edad con preexistencias. 100% copago ambulatorio.",
-        "no_para":"Quien necesita hospitalizacion, cirugias o maternidad.",
+        "no_para":"Quien necesita hospitalización, cirugías o maternidad.",
         "carencias":"Sin carencias — vigencia inmediata.",
         "es_convenio":True,"tarifas":IM100_TARIFAS,
     },
     "DENTAL": {
-        "nombre":"Mi Dental IntegraMediaca 68%","emoji":"🦷",
+        "nombre":"Mi Dental IntegraMédica 68%","emoji":"🦷",
         "prevision":["FONASA","ISAPRE"],
         "f_cat":False,"f_libre":False,"f_maternidad":False,
         "f_salud_mental":False,"f_quirurgico":False,"f_sin_dps":True,
-        "dps":False,"tag":"68% dcto todos los tratamientos dentales · Sin DPS · 18-89 anios",
-        "hosp":"No cubre","amb":"Solo dental",
-        "cat":"No incluye","tope_base":"Sin tope (68% dcto en todos los tratamientos)",
-        "tope_cat":"No aplica","muerte":"No incluye",
-        "maternidad":"No cubre","oncologia":"No cubre",
+        "dps":False,"tag":"68% dcto todos los tratamientos dentales · Sin DPS · 18–89 años",
+        "hosp":"❌ No cubre","amb":"❌ Solo dental",
+        "cat":"❌ No incluye","tope_base":"Sin tope (68% dcto en todos los tratamientos)",
+        "tope_cat":"— No aplica","muerte":"❌ No incluye",
+        "maternidad":"❌ No cubre","oncologia":"❌ No cubre",
         "salud_mental":False,
-        "red":"Red Dental IntegraMediaca (Stgo, Copiapo, La Serena, Vina, Rancagua, Talca, Concepcion)",
+        "red":"Red Dental IntegraMédica (Stgo, Copiapó, La Serena, Viña, Rancagua, Talca, Concepción)",
         "dental":"68% dcto TODOS los tratamientos dentales + 1 limpieza anual GRATIS",
-        "medicamentos":"50% generico / 20% marca con receta (tope $20.000/mes) SalcoBrand",
-        "ded_amb":"Sin deducible","ded_hosp":"No aplica",
-        "para_quien":"Cualquier persona. Todas las edades. Sin prevision requerida.",
-        "no_para":"Quien necesita cobertura medica, hospitalizacion o ambulatorio.",
-        "carencias":"Vigencia dental desde el 2 mes. Sin carencias para descuentos.",
+        "medicamentos":"50% genérico / 20% marca con receta (tope $20.000/mes) SalcoBrand",
+        "ded_amb":"Sin deducible","ded_hosp":"— No aplica",
+        "para_quien":"Cualquier persona. Todas las edades. Sin previsión requerida.",
+        "no_para":"Quien necesita cobertura médica, hospitalización o ambulatorio.",
+        "carencias":"Vigencia dental desde el 2° mes. Sin carencias para descuentos.",
         "es_convenio":True,"tarifas":DENTAL_TARIFAS_MENSUAL,
         "tarifas_inicio":DENTAL_TARIFAS_INICIO,
     },
@@ -455,7 +455,7 @@ def clp(uf, val_uf):
     return "$" + f"{uf * val_uf:,.0f}".replace(",", ".")
 
 def ok(b):
-    return "Si" if b else "No"
+    return "✅" if b else "❌"
 
 def cupon_para_plan(pk, usar_cupon, CUPONES):
     if not usar_cupon:
@@ -519,15 +519,15 @@ def edad_valida(pk, edad):
 # SIDEBAR
 # ══════════════════════════════════════════════════════════════════
 with st.sidebar:
-    st.markdown("## Datos del Cliente")
+    st.markdown("## 👤 Datos del Cliente")
     nombre    = st.text_input("Nombre completo", placeholder="Ej: Franco Lupi")
     edad_c    = st.number_input("Edad contratante", 18, 84, 35)
-    prevision = st.selectbox("Prevision", ["FONASA B,C,D", "ISAPRE"])
+    prevision = st.selectbox("Previsión", ["FONASA B,C,D", "ISAPRE"])
     prevision_base = "ISAPRE" if prevision == "ISAPRE" else "FONASA"
 
     st.markdown("---")
-    st.markdown("### Cargas")
-    n_cargas = st.number_input("Numero de cargas", 0, 6, 0)
+    st.markdown("### 👨‍👩‍👧‍👦 Cargas")
+    n_cargas = st.number_input("Número de cargas", 0, 6, 0)
     cargas = []
     for i in range(int(n_cargas)):
         a, b = st.columns([2, 1])
@@ -536,17 +536,17 @@ with st.sidebar:
         cargas.append({"nombre": nc or f"Carga {i+1}", "edad": ec})
 
     st.markdown("---")
-    st.markdown("### Config")
+    st.markdown("### ⚙️ Config")
     val_uf = st.number_input("Valor UF ($)", 30000, 50000, 40180, 10)
 
     st.markdown("**Tramo convenios (si aplica):**")
-    tramo_am     = st.selectbox("Tramo Adulto Mayor",        list(AM_TARIFAS.keys()),          key="tramo_am")
-    tramo_im     = st.selectbox("Tramo IntegraMediaca 100%", list(IM100_TARIFAS.keys()),        key="tramo_im")
-    tramo_dental = st.selectbox("Tramo Mi Dental",           list(DENTAL_TARIFAS_MENSUAL.keys()), key="tramo_dental")
+    tramo_am     = st.selectbox("👴 Tramo Adulto Mayor",        list(AM_TARIFAS.keys()),           key="tramo_am")
+    tramo_im     = st.selectbox("💊 Tramo IntegraMédica 100%",  list(IM100_TARIFAS.keys()),         key="tramo_im")
+    tramo_dental = st.selectbox("🦷 Tramo Mi Dental",           list(DENTAL_TARIFAS_MENSUAL.keys()), key="tramo_dental")
 
     st.markdown("---")
-    st.markdown("### Cupones de descuento")
-    st.caption("Se aplican automaticamente segun el plan")
+    st.markdown("### 🎁 Cupones de descuento")
+    st.caption("Se aplican automáticamente según el plan")
     CUPONES = {
         "BCT":  ("BCTALL20NEW",   20),
         "BP":   ("BMPHYA20NEW",   20),
@@ -554,7 +554,7 @@ with st.sidebar:
         "AMBU": ("BMPAMB10ENERO", 10),
         "BPRO": ("BMSPRO10JUL",   10),
     }
-    usar_cupon = st.checkbox("Aplicar cupon de descuento", value=False)
+    usar_cupon = st.checkbox("Aplicar cupón de descuento", value=False)
     if usar_cupon:
         st.info(
             "**Cupones disponibles:**\n"
@@ -566,26 +566,26 @@ with st.sidebar:
         )
 
     st.markdown("---")
-    st.markdown("### Filtros del cliente")
+    st.markdown("### 🎯 Filtros del cliente")
     st.caption("Marca lo que el cliente necesita")
 
-    f_preex        = st.checkbox("Tiene Preexistencias (sin DPS)")
-    f_cat          = st.checkbox("Extension Catastrofica")
-    f_libre        = st.checkbox("Libre Eleccion de medico/clinica")
-    f_maternidad   = st.checkbox("Cobertura de Maternidad")
-    f_salud_mental = st.checkbox("Salud Mental (psicologia/psiquiatria)")
-    f_quirurgico   = st.checkbox("Hospitalizacion y Cirugias")
+    f_preex        = st.checkbox("⚠️ Tiene Preexistencias (sin DPS)")
+    f_cat          = st.checkbox("⚡ Extensión Catastrófica")
+    f_libre        = st.checkbox("🏥 Libre Elección de médico/clínica")
+    f_maternidad   = st.checkbox("🍼 Cobertura de Maternidad")
+    f_salud_mental = st.checkbox("🧠 Salud Mental (psicología/psiquiatría)")
+    f_quirurgico   = st.checkbox("🔪 Hospitalización y Cirugías")
 
     if f_preex:
-        st.warning("Solo planes sin DPS. Activa los Convenios abajo.")
+        st.warning("⚠️ Solo planes sin DPS. Activa los Convenios abajo.")
 
     st.markdown("---")
-    st.markdown("### Convenios especiales")
-    st.caption("Sin DPS · Cubren preexistencias · Filtran por edad automaticamente")
-    f_adulto_mayor = st.checkbox("Adulto Mayor (60-84 anios)")
-    f_im100        = st.checkbox("IntegraMediaca 100% ambulatorio")
-    f_dental       = st.checkbox("Mi Dental IntegraMediaca 68%")
-    f_pyme         = st.checkbox("Empresa / PYME")
+    st.markdown("### 🤝 Convenios especiales")
+    st.caption("Sin DPS · Cubren preexistencias · Filtran por edad automáticamente")
+    f_adulto_mayor = st.checkbox("👴 Adulto Mayor (60–84 años)")
+    f_im100        = st.checkbox("💊 IntegraMédica 100% ambulatorio")
+    f_dental       = st.checkbox("🦷 Mi Dental IntegraMédica 68%")
+    f_pyme         = st.checkbox("🏢 Empresa / PYME")
 
 f_sin_dps = f_preex
 
@@ -630,11 +630,10 @@ for pk in planes_compatibles:
 
 planes_compatibles = [pk for pk in planes_compatibles if pk in precios]
 
-# Avisos sidebar
 if edad_c > 75:
-    st.sidebar.error(f"{edad_c} anios: sin planes regulares. Activa Adulto Mayor o IntegraMediaca 100% en Convenios.")
+    st.sidebar.error(f"🔴 {edad_c} años: sin planes regulares. Activa 👴 Adulto Mayor en Convenios.")
 elif edad_c >= 60:
-    st.sidebar.info(f"{edad_c} anios: tambien aplica el Plan Adulto Mayor (60-84 anios).")
+    st.sidebar.info(f"💡 {edad_c} años: también aplica el Plan Adulto Mayor (60–84 años).")
 
 orden_rec = ["BCT80","BCT70","80/70","MULTIPRO","BCT60","70/70","MULTI","70/25","AMB70"]
 rec = next((p for p in orden_rec if p in precios and precios[p].get("total")), "")
@@ -646,31 +645,31 @@ st.markdown("""
 <div style="background:linear-gradient(90deg,#005EB8,#00AEEF);padding:22px;
 border-radius:18px;margin-bottom:20px;box-shadow:0 6px 20px rgba(0,0,0,.10);">
 <h1 style="margin:0;color:white !important;font-size:34px;">
-Cotizador PRO — Bupa Seguros Chile
+🏥 Cotizador PRO — Bupa Seguros Chile
 </h1>
 <p style="margin-top:8px;margin-bottom:0;color:#E0F0FF;font-size:15px;">
-Filtros inteligentes · Seleccion por checkbox · Mensaje WhatsApp automatico
+Filtros inteligentes · Selección por checkbox · Mensaje WhatsApp automático
 </p>
 </div>
 """, unsafe_allow_html=True)
 
 h1col, h2col, h3col, h4col = st.columns(4)
-h1col.info(f"**Cliente:** {nombre or '(sin nombre)'} · {edad_c} anios")
-h2col.info(f"**Prevision:** {prevision}")
+h1col.info(f"**Cliente:** {nombre or '(sin nombre)'} · {edad_c} años")
+h2col.info(f"**Previsión:** {prevision}")
 h3col.info(f"**Cargas:** {n_cargas} | **UF:** ${val_uf:,}".replace(",","."))
 h4col.info(f"**Opciones disponibles:** {len(planes_compatibles)}")
 
 if edad_c > 75:
-    st.error(f"Con {edad_c} anios no hay planes regulares (max. ingreso 75 anios). "
-             f"Activa Adulto Mayor en Convenios Especiales.")
+    st.error(f"🔴 Con {edad_c} años no hay planes regulares (máx. ingreso 75 años). "
+             f"Activa **👴 Adulto Mayor** en Convenios Especiales.")
 elif edad_c > 64:
     if not f_adulto_mayor:
-        st.info(f"Con {edad_c} anios tambien aplica el Plan Adulto Mayor (60-84 anios).")
+        st.info(f"💡 Con {edad_c} años también aplica el **Plan Adulto Mayor** (60–84 años).")
 elif edad_c >= 60 and not f_adulto_mayor:
-    st.info(f"Con {edad_c} anios tambien aplican el Plan Adulto Mayor e IntegraMediaca 100%. "
-            f"Activaos en Convenios Especiales.")
+    st.info(f"💡 Con {edad_c} años también aplican el **Plan Adulto Mayor** e **IntegraMédica 100%**. "
+            f"Actívalos en Convenios Especiales.")
 if f_preex:
-    st.warning("Preexistencias activas — solo planes sin DPS y convenios.")
+    st.warning("⚠️ Preexistencias activas — solo planes sin DPS y convenios.")
 
 # ══════════════════════════════════════════════════════════════════
 # SELECCIÓN POR CHECKBOX
@@ -679,14 +678,14 @@ st.markdown("---")
 planes_seleccionados = []
 
 if planes_compatibles:
-    st.markdown("### Selecciona los planes a presentar al cliente")
-    st.caption("Solo los planes marcados apareceran en el detalle y en el mensaje WhatsApp")
+    st.markdown("### ✅ Selecciona los planes a presentar al cliente")
+    st.caption("Solo los planes marcados aparecerán en el detalle y en el mensaje WhatsApp")
 
     regulares_disp = [pk for pk in planes_compatibles if pk in PLANES and precios[pk].get("total")]
     convenios_disp = [pk for pk in planes_compatibles if pk in CONVENIOS]
 
     if regulares_disp:
-        st.markdown("**Planes regulares:**")
+        st.markdown("**📋 Planes regulares:**")
         cols_r = st.columns(min(len(regulares_disp), 4))
         for i, pk in enumerate(regulares_disp):
             p = PLANES[pk]
@@ -697,7 +696,7 @@ if planes_compatibles:
                     planes_seleccionados.append(pk)
 
     if convenios_disp:
-        st.markdown("**Convenios (sin DPS · cubren preexistencias):**")
+        st.markdown("**🤝 Convenios (sin DPS · cubren preexistencias):**")
         cols_c = st.columns(min(len(convenios_disp), 4))
         for i, pk in enumerate(convenios_disp):
             p = CONVENIOS[pk]
@@ -709,25 +708,25 @@ if planes_compatibles:
                     planes_seleccionados.append(pk)
 
     if not planes_seleccionados:
-        st.warning("Marca al menos un plan para ver el detalle y generar el WhatsApp.")
+        st.warning("☝️ Marca al menos un plan para ver el detalle y generar el WhatsApp.")
 
 else:
     if edad_c > 75:
-        st.error(f"No hay planes disponibles para {edad_c} anios. "
-                 f"Activa Plan Adulto Mayor (60-84 anios) en el panel izquierdo.")
+        st.error(f"⛔ No hay planes disponibles para {edad_c} años. "
+                 f"Activa **👴 Plan Adulto Mayor** (acepta 60–84 años) en el panel izquierdo.")
     elif edad_c > 64:
-        st.error(f"No hay planes regulares para {edad_c} anios (max. 75 anios). "
-                 f"Activa Plan Adulto Mayor en el panel izquierdo.")
+        st.error(f"⛔ No hay planes regulares para {edad_c} años (máx. 75 años). "
+                 f"Activa **👴 Plan Adulto Mayor** en el panel izquierdo.")
     elif f_preex or f_sin_dps:
-        st.warning("No hay opciones sin DPS con esos filtros. "
-                   "Activa Adulto Mayor o IntegraMediaca 100%.")
+        st.warning("⚠️ No hay opciones sin DPS con esos filtros. "
+                   "Activa 👴 Adulto Mayor o 💊 IntegraMédica 100%.")
     else:
-        st.warning("Ningun plan cumple los filtros. Revisa la combinacion.")
+        st.warning("💡 Ningún plan cumple los filtros. Revisa la combinación.")
 
 # ══════════════════════════════════════════════════════════════════
 # TABS
 # ══════════════════════════════════════════════════════════════════
-t1, t2, t3, t4 = st.tabs(["Detalle de Planes", "Comparativa", "Coberturas", "WhatsApp"])
+t1, t2, t3, t4 = st.tabs(["📋 Detalle de Planes", "📊 Comparativa", "🔍 Coberturas", "📱 WhatsApp"])
 
 # ──────────────────────────────────────────────────────────────────
 # TAB 1 — DETALLE
@@ -741,11 +740,11 @@ with t1:
             p = CATALOGO[pk]
             r = precios[pk]
             with cols_met[i % 4]:
-                es_conv      = pk in CONVENIOS
-                lbl          = f"{'- ' if pk==rec else ''}{p['emoji']} {p['nombre']}"
-                sub          = f"({r.get('tramo','')}) " if es_conv else ""
-                cupon_badge  = f" {r.get('pct',0)}% dcto" if r.get("pct",0) > 0 else ""
-                st.metric(lbl, f"UF {r['total']:.2f}{cupon_badge}",
+                es_conv     = pk in CONVENIOS
+                lbl         = ("⭐ " if pk == rec else "") + p["emoji"] + " " + p["nombre"]
+                sub         = ("(" + r.get("tramo","") + ") ") if es_conv else ""
+                cupon_badge = (" 🎁" + str(r.get("pct",0)) + "%") if r.get("pct",0) > 0 else ""
+                st.metric(lbl, "UF " + f"{r['total']:.2f}" + cupon_badge,
                           sub + clp(r["total"], val_uf) + "/mes")
 
         st.markdown("---")
@@ -756,65 +755,64 @@ with t1:
             es_conv = pk in CONVENIOS
             es_rec  = pk == rec
 
-            cupon_str = (f" | Cupon {r.get('cupon','')} ({r.get('pct',0)}% dcto)"
-                         if r.get("pct", 0) > 0 else "")
-            tramo_str = f" · {r.get('tramo','')}" if es_conv else ""
-            titulo    = (f"{'RECOMENDADO · ' if es_rec else ''}{p['emoji']} {p['nombre']}"
-                         f"{tramo_str} — UF {r['total']:.2f}/mes{cupon_str} · {clp(r['total'],val_uf)}")
+            cupon_str = (" | 🎁 " + r.get("cupon","") + " (" + str(r.get("pct",0)) + "% dcto)") if r.get("pct", 0) > 0 else ""
+            tramo_str = (" · " + r.get("tramo","")) if es_conv else ""
+            titulo    = (("⭐ RECOMENDADO · " if es_rec else "") + p["emoji"] + " " + p["nombre"]
+                         + tramo_str + " — UF " + f"{r['total']:.2f}" + "/mes" + cupon_str + " · " + clp(r["total"], val_uf))
 
             with st.expander(titulo, expanded=es_rec):
                 badges_line = []
-                if es_conv:               badges_line.append("Convenio · Sin DPS · Cubre preexistencias")
-                if p["f_cat"]:            badges_line.append("Catastrofico")
-                if p["f_libre"]:          badges_line.append("Libre Eleccion")
-                if p["f_maternidad"]:     badges_line.append("Maternidad")
-                if p["f_salud_mental"]:   badges_line.append("Salud Mental")
-                if p["f_quirurgico"]:     badges_line.append("Hospitalizacion")
-                if not p["f_quirurgico"]: badges_line.append("Solo Ambulatorio")
-                if r.get("pct", 0) > 0:  badges_line.append(f"Cupon {r['cupon']} ({r['pct']}% dcto)")
+                if es_conv:               badges_line.append("🤝 Convenio · Sin DPS · Cubre preexistencias")
+                if p["f_cat"]:            badges_line.append("⚡ Catastrófico")
+                if p["f_libre"]:          badges_line.append("🏥 Libre Elección")
+                if p["f_maternidad"]:     badges_line.append("🍼 Maternidad")
+                if p["f_salud_mental"]:   badges_line.append("🧠 Salud Mental")
+                if p["f_quirurgico"]:     badges_line.append("🔪 Hospitalización")
+                if not p["f_quirurgico"]: badges_line.append("⚠️ Solo Ambulatorio")
+                if r.get("pct", 0) > 0:  badges_line.append("🎁 Cupón " + r["cupon"] + " (" + str(r["pct"]) + "% dcto)")
 
-                st.markdown(f"**{p['tag']}** · {'  ·  '.join(badges_line)}")
-                st.markdown(f"Prevision: {' / '.join(p['prevision'])}")
+                st.markdown("**" + p["tag"] + "** · " + "  ·  ".join(badges_line))
+                st.markdown("Previsión: " + " / ".join(p["prevision"]))
                 st.markdown("---")
 
                 col_izq, col_der = st.columns(2)
 
                 with col_izq:
-                    st.markdown("##### Coberturas")
+                    st.markdown("##### 📊 Coberturas")
                     filas_cob = [
-                        ("Hospitalaria",      p["hosp"]),
-                        ("Ambulatoria",       p["amb"]),
-                        ("Catastrofica",      p["cat"]),
-                        ("Maternidad",        p["maternidad"]),
-                        ("Muerte accidental", p["muerte"]),
-                        ("Salud mental",      ok(p["salud_mental"])),
-                        ("Dental",            p["dental"]),
-                        ("Medicamentos",      p["medicamentos"]),
-                        ("Tope base",         p["tope_base"]),
-                        ("Tope catastrofico", p["tope_cat"]),
-                        ("Deducible amb.",    p["ded_amb"]),
-                        ("Deducible hosp.",   p["ded_hosp"]),
-                        ("DPS",               "No requerida" if not p["dps"] else "Requerida"),
-                        ("Red",               p["red"]),
+                        ("🏥 Hospitalaria",      p["hosp"]),
+                        ("🩺 Ambulatoria",        p["amb"]),
+                        ("⚡ Catastrófica",       p["cat"]),
+                        ("🍼 Maternidad",         p["maternidad"]),
+                        ("💀 Muerte accidental",  p["muerte"]),
+                        ("🧠 Salud mental",       ok(p["salud_mental"])),
+                        ("🦷 Dental",             p["dental"]),
+                        ("💊 Medicamentos",       p["medicamentos"]),
+                        ("🔝 Tope base",          p["tope_base"]),
+                        ("🔝 Tope catastrófico",  p["tope_cat"]),
+                        ("➖ Deducible amb.",     p["ded_amb"]),
+                        ("➖ Deducible hosp.",    p["ded_hosp"]),
+                        ("📋 DPS",                "No requerida" if not p["dps"] else "Requerida"),
+                        ("🏥 Red",                p["red"]),
                     ]
                     for k, v in filas_cob:
                         ca, cb = st.columns([2, 3])
-                        ca.markdown(f"**{k}**")
+                        ca.markdown("**" + k + "**")
                         cb.write(v)
                     if pk == "AM70" and p.get("rescate_vital"):
                         ca, cb = st.columns([2, 3])
-                        ca.markdown("**Rescate Vital**")
+                        ca.markdown("**🚑 Rescate Vital**")
                         cb.write(p["rescate_vital"])
 
                 with col_der:
-                    st.markdown("##### Asegurados y precios")
+                    st.markdown("##### 👥 Asegurados y precios")
                     if es_conv:
-                        st.write(f"- **{r.get('tramo','')}**: UF {r['total']:.2f} · {clp(r['total'],val_uf)}")
+                        st.write("• **" + r.get("tramo","") + "**: UF " + f"{r['total']:.2f}" + " · " + clp(r["total"], val_uf))
                         st.caption("Precio fijo por tramo familiar")
                         tarifas = p.get("tarifas", {})
                         df_t = pd.DataFrame({
                             "Tramo":  list(tarifas.keys()),
-                            "UF/mes": [f"UF {v:.2f}" for v in tarifas.values()],
+                            "UF/mes": ["UF " + f"{v:.2f}" for v in tarifas.values()],
                             "$/mes":  [clp(v, val_uf) for v in tarifas.values()],
                         })
                         st.dataframe(df_t, hide_index=True, use_container_width=True)
@@ -822,21 +820,21 @@ with t1:
                         for d in r["det"]:
                             if d["final"]:
                                 if d.get("pct", 0) > 0 and d["orig"]:
-                                    st.write(f"- **{d['quien']}** ({d['edad']} anios): "
-                                             f"UF {d['orig']:.2f} -> **UF {d['final']:.2f}** · {clp(d['final'],val_uf)}")
+                                    st.write("• **" + d["quien"] + "** (" + str(d["edad"]) + " años): "
+                                             "~~UF " + f"{d['orig']:.2f}" + "~~ → **UF " + f"{d['final']:.2f}" + "** · " + clp(d["final"], val_uf))
                                 else:
-                                    st.write(f"- **{d['quien']}** ({d['edad']} anios): "
-                                             f"UF {d['final']:.2f} · {clp(d['final'],val_uf)}")
+                                    st.write("• **" + d["quien"] + "** (" + str(d["edad"]) + " años): "
+                                             "UF " + f"{d['final']:.2f}" + " · " + clp(d["final"], val_uf))
                             else:
-                                st.write(f"- {d['quien']} ({d['edad']} anios): *no disponible*")
+                                st.write("• " + d["quien"] + " (" + str(d["edad"]) + " años): *no disponible*")
                         if r.get("pct", 0) > 0:
-                            st.info(f"Descuento {r['pct']}% con cupon **{r['cupon']}**")
+                            st.info("🎁 Descuento " + str(r["pct"]) + "% con cupón **" + r["cupon"] + "**")
 
                 st.markdown("---")
                 cb1, cb2 = st.columns(2)
-                cb1.success(f"Le conviene a: {p['para_quien']}")
-                cb2.warning(f"No ideal para: {p['no_para']}")
-                st.caption(f"Carencias: {p['carencias']}")
+                cb1.success("✅ **Le conviene a:** " + p["para_quien"])
+                cb2.warning("⚠️ **No ideal para:** " + p["no_para"])
+                st.caption("⏳ Carencias: " + p["carencias"])
 
 # ──────────────────────────────────────────────────────────────────
 # TAB 2 — COMPARATIVA
@@ -845,42 +843,41 @@ with t2:
     if len(planes_seleccionados) < 2:
         st.info("Selecciona al menos 2 planes para comparar.")
     else:
-        filas = {"Caracteristica": [
-            "Prima UF/mes","Prima $/mes","Prima $/anio",
-            "Cobertura hosp.","Cobertura amb.",
-            "Catastrofica","Tope base","Tope cat.",
-            "Maternidad","Muerte accidental",
-            "Salud mental","Dental",
-            "Deducible amb.","Deducible hosp.",
-            "Red","DPS","Prevision","Cupon",
+        filas = {"Característica": [
+            "💰 Prima UF/mes","💵 Prima $/mes","📆 Prima $/año",
+            "🏥 Cobertura hosp.","🩺 Cobertura amb.",
+            "⚡ Catastrófica","🔝 Tope base","🔝 Tope cat.",
+            "🍼 Maternidad","💀 Muerte accidental",
+            "🧠 Salud mental","🦷 Dental",
+            "➖ Deducible amb.","➖ Deducible hosp.",
+            "🏥 Red","📋 DPS","🎯 Previsión","🎁 Cupón",
         ]}
         for pk in planes_seleccionados:
             p   = CATALOGO[pk]
             r   = precios[pk]
             es_conv = pk in CONVENIOS
-            lbl = f"{'- ' if pk==rec else ''}{p['emoji']} {p['nombre']}"
+            lbl = ("⭐ " if pk == rec else "") + p["emoji"] + " " + p["nombre"]
             if es_conv:
-                lbl += f"\n({r.get('tramo','')})"
-            cupon_info = (f"{r.get('cupon','')} ({r.get('pct',0)}%)"
-                          if r.get("pct", 0) > 0 else "—")
+                lbl += "\n(" + r.get("tramo","") + ")"
+            cupon_info = (r.get("cupon","") + " (" + str(r.get("pct",0)) + "%)") if r.get("pct", 0) > 0 else "—"
+            dental_txt = p["dental"][:20] + "..." if len(p["dental"]) > 20 else p["dental"]
+            red_txt    = p["red"][:30] + "..." if len(p["red"]) > 30 else p["red"]
             filas[lbl] = [
-                f"UF {r['total']:.2f}",
+                "UF " + f"{r['total']:.2f}",
                 clp(r["total"], val_uf),
                 clp(r["total"] * 12, val_uf),
                 p["hosp"], p["amb"],
-                "Si" if p["f_cat"] else "No",
+                "✅" if p["f_cat"] else "❌",
                 p["tope_base"], p["tope_cat"],
                 p["maternidad"],
-                "Si" if "500" in p["muerte"] else "No",
-                ok(p["salud_mental"]),
-                p["dental"][:20] + "..." if len(p["dental"]) > 20 else p["dental"],
-                p["ded_amb"], p["ded_hosp"],
-                p["red"][:30] + "..." if len(p["red"]) > 30 else p["red"],
-                "No" if not p["dps"] else "Si",
+                "✅" if "500" in p["muerte"] else "❌",
+                ok(p["salud_mental"]), dental_txt,
+                p["ded_amb"], p["ded_hosp"], red_txt,
+                "No" if not p["dps"] else "Sí",
                 " / ".join(p["prevision"]),
                 cupon_info,
             ]
-        df = pd.DataFrame(filas).set_index("Caracteristica")
+        df = pd.DataFrame(filas).set_index("Característica")
         st.dataframe(df, use_container_width=True)
 
 # ──────────────────────────────────────────────────────────────────
@@ -893,91 +890,91 @@ with t3:
         plan_det = st.selectbox(
             "Ver detalle de:",
             options=planes_seleccionados,
-            format_func=lambda x: f"{CATALOGO[x]['emoji']} {CATALOGO[x]['nombre']}"
+            format_func=lambda x: CATALOGO[x]["emoji"] + " " + CATALOGO[x]["nombre"]
         )
         p = CATALOGO[plan_det]
         r = precios[plan_det]
-        st.markdown(f"## {p['emoji']} {p['nombre']}")
+        st.markdown("## " + p["emoji"] + " " + p["nombre"])
         if r:
-            st.markdown(f"**Prima:** UF {r['total']:.2f}/mes · {clp(r['total'],val_uf)}/mes · "
-                        f"{clp(r['total']*12,val_uf)}/anio")
+            st.markdown("**Prima:** UF " + f"{r['total']:.2f}" + "/mes · " + clp(r["total"], val_uf) + "/mes · "
+                        + clp(r["total"] * 12, val_uf) + "/año")
 
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown("#### Ambulatorio")
+            st.markdown("#### 🩺 Ambulatorio")
             items_amb = [
                 "Consultas medicina general (ilimitadas, presencial)",
                 "Videoconsultas medicina general y especialidades (ilimitadas)",
                 "Consultas especialidad presencial (ilimitadas)",
-                "Consulta de urgencia","Nutricionista (con prescripcion)",
-                "Examenes laboratorio e imagenologia","Examenes preventivos",
-                "Procedimientos diagnosticos y terapeuticos",
+                "Consulta de urgencia","Nutricionista (con prescripción)",
+                "Exámenes laboratorio e imagenología","Exámenes preventivos",
+                "Procedimientos diagnósticos y terapéuticos",
             ]
             for item in items_amb:
-                if "No" not in p["amb"] and "Solo" not in p["amb"]:
-                    st.write(f"Si ({p['amb']}) — {item}")
+                if "❌" not in p["amb"]:
+                    st.write("✅ **" + p["amb"] + "** — " + item)
                 else:
-                    st.write(f"No — {item}")
+                    st.write("❌ " + item)
             if p["salud_mental"]:
-                st.write("Si — Psicologia y Psiquiatria ambulatoria")
+                st.write("✅ **Psicología y Psiquiatría** ambulatoria")
             if p["f_libre"]:
-                st.write("Si — Kinesiologia y Fonoaudiologia (con prescripcion)")
+                st.write("✅ **Kinesiología y Fonoaudiología** (con prescripción)")
 
             if p["f_quirurgico"]:
-                st.markdown("#### Hospitalizacion")
-                for item in ["Dia cama","Dia cama UTI/UCI/Incubadora",
-                             "Honorarios medico quirurgicos","Derecho a pabellon",
+                st.markdown("#### 🏥 Hospitalización")
+                for item in ["Día cama","Día cama UTI/UCI/Incubadora",
+                             "Honorarios médico quirúrgicos","Derecho a pabellón",
                              "Insumos y medicamentos hospitalarios",
-                             "Procedimientos diagnosticos","Cirugia ambulatoria"]:
-                    st.write(f"Si ({p['hosp']}) — {item}")
+                             "Procedimientos diagnósticos","Cirugía ambulatoria"]:
+                    st.write("✅ **" + p["hosp"] + "** — " + item)
             else:
-                st.error("Este plan NO cubre hospitalizacion ni cirugias")
+                st.error("❌ Este plan NO cubre hospitalización ni cirugías")
 
         with c2:
             if p["f_maternidad"]:
-                st.markdown("#### Maternidad")
-                for item in ["Parto normal","Cesarea","Aborto no voluntario",
+                st.markdown("#### 🍼 Maternidad")
+                for item in ["Parto normal","Cesárea","Aborto no voluntario",
                              "Complicaciones del embarazo"]:
-                    st.write(f"Si ({p['maternidad']}) — {item}")
+                    st.write("✅ **" + p["maternidad"] + "** — " + item)
 
-            st.markdown("#### Extension Catastrofica")
+            st.markdown("#### ⚡ Extensión Catastrófica")
             if p["f_cat"]:
                 st.success(p["cat"])
-                st.write(f"Tope: {p['tope_cat']}")
+                st.write("Tope: " + p["tope_cat"])
             else:
-                st.error("No incluye extension catastrofica")
+                st.error("❌ No incluye extensión catastrófica")
 
-            st.markdown("#### Topes y Deducibles")
+            st.markdown("#### 📌 Topes y Deducibles")
             df_t = pd.DataFrame({
-                "Concepto": ["Tope base","Tope catastrofico","Deducible amb.",
+                "Concepto": ["Tope base","Tope catastrófico","Deducible amb.",
                              "Deducible hosp.","Muerte accidental"],
                 "Valor":    [p["tope_base"],p["tope_cat"],p["ded_amb"],
                              p["ded_hosp"],p["muerte"]],
             })
             st.dataframe(df_t, hide_index=True, use_container_width=True)
 
-            st.markdown("#### Red de Prestadores")
+            st.markdown("#### 🏥 Red de Prestadores")
             st.info(p["red"])
             if p["f_libre"]:
                 st.markdown("""
-| Red | Lab. | Imag. | Dia cama | Pabellon |
+| Red | Lab. | Imag. | Día cama | Pabellón |
 |-----|------|-------|----------|----------|
-| IntegraMediaca | +12% | +12% | - | - |
-| Clinica Bupa Stgo | +10% | +10% | +10% | +10% |
-| Clinica Bupa Renaca | +10% | +10% | +10% | +10% |
+| IntegraMédica | +12% | +12% | - | - |
+| Clínica Bupa Stgo | +10% | +10% | +10% | +10% |
+| Clínica Bupa Reñaca | +10% | +10% | +10% | +10% |
 """)
 
         st.markdown("---")
         ca, cb = st.columns(2)
-        ca.success(f"Le conviene a: {p['para_quien']}")
-        cb.warning(f"No ideal para: {p['no_para']}")
-        st.caption(f"Carencias: {p['carencias']}")
+        ca.success("✅ Le conviene a: " + p["para_quien"])
+        cb.warning("⚠️ No ideal para: " + p["no_para"])
+        st.caption("⏳ Carencias: " + p["carencias"])
 
 # ──────────────────────────────────────────────────────────────────
 # TAB 4 — WHATSAPP
 # ──────────────────────────────────────────────────────────────────
 with t4:
-    st.subheader("Mensaje WhatsApp")
+    st.subheader("📱 Mensaje WhatsApp")
 
     if not planes_seleccionados:
         st.info("Selecciona planes arriba para generar el mensaje.")
@@ -985,9 +982,9 @@ with t4:
         wa1, wa2 = st.columns(2)
         with wa1:
             asesor           = st.text_input("Tu nombre", "Romulo Lupi")
-            telefono         = st.text_input("Tu telefono", "+569 90790892")
+            telefono         = st.text_input("Tu teléfono", "+569 90790892")
             telefono_cliente = st.text_input(
-                "WhatsApp cliente (solo 9 digitos)",
+                "WhatsApp cliente (solo 9 dígitos)",
                 placeholder="912345678"
             )
         with wa2:
@@ -1000,42 +997,36 @@ with t4:
             p = CATALOGO[pk]
             es_conv = pk in CONVENIOS
             pts = []
-            if "No" not in p["hosp"] and "cubre" not in p["hosp"].lower():
-                pts.append(f"Hospitalizacion: {p['hosp']}")
-            pts.append(f"Ambulatorio: {p['amb']}")
+            if "❌" not in p["hosp"]:
+                pts.append("🏥 Hospitalización: " + p["hosp"])
+            pts.append("🩺 Ambulatorio: " + p["amb"])
             if p["f_cat"]:
-                pts.append(f"Catastrofico: 100% hasta {p['tope_cat']}")
-            if "No" not in p["maternidad"] and "cubre" not in p["maternidad"].lower():
-                pts.append(f"Maternidad: {p['maternidad']}")
+                pts.append("⚡ Catastrófico: 100% hasta " + p["tope_cat"])
+            if "❌" not in p["maternidad"]:
+                pts.append("🍼 Maternidad: " + p["maternidad"])
             if "500" in p["muerte"]:
-                pts.append("Muerte accidental: UF 500")
+                pts.append("💀 Muerte accidental: UF 500")
             if p["salud_mental"]:
-                pts.append("Salud mental (psicologia y psiquiatria)")
+                pts.append("🧠 Salud mental (psicología y psiquiatría)")
             if p["f_libre"]:
-                pts.append("Libre eleccion de medico y clinica")
+                pts.append("🏥 Libre elección de médico y clínica")
             if es_conv and pk == "AM70":
-                pts.append("Rescate Riesgo Vital — Unidad Coronaria Movil (fono: 223914444)")
+                pts.append("🚑 Rescate Riesgo Vital — Unidad Coronaria Móvil (fono: 223914444)")
             if es_conv:
-                pts.append("CUBRE PREEXISTENCIAS — sin DPS")
+                pts.append("✅ CUBRE PREEXISTENCIAS — sin DPS")
             if p["dental"] and "No" not in p["dental"]:
-                pts.append(f"Dental: {p['dental']}")
-            pts.append(f"Medicamentos: {p['medicamentos']}")
+                pts.append("🦷 Dental: " + p["dental"])
+            pts.append("💊 Medicamentos: " + p["medicamentos"])
 
             no_cubre = []
-            if "No" in p["hosp"] or "cubre" in p["hosp"].lower():
-                no_cubre.append("Hospitalizacion ni cirugias")
-            if not p["f_cat"]:
-                no_cubre.append("Extension catastrofica")
-            if "No" in p["maternidad"] or "cubre" in p["maternidad"].lower():
-                no_cubre.append("Maternidad")
-            if not p["salud_mental"]:
-                no_cubre.append("Psicologia ni psiquiatria")
-            if "500" not in p["muerte"]:
-                no_cubre.append("Muerte accidental")
-            if not p["f_libre"]:
-                no_cubre.append("Libre eleccion (red cerrada)")
+            if "❌" in p["hosp"]:         no_cubre.append("Hospitalización ni cirugías")
+            if not p["f_cat"]:            no_cubre.append("Extensión catastrófica")
+            if "❌" in p["maternidad"]:   no_cubre.append("Maternidad")
+            if not p["salud_mental"]:     no_cubre.append("Psicología ni psiquiatría")
+            if "500" not in p["muerte"]:  no_cubre.append("Muerte accidental")
+            if not p["f_libre"]:          no_cubre.append("Libre elección (red cerrada)")
             if no_cubre:
-                pts.append("*No cubre:* " + " - " + " · ".join(no_cubre))
+                pts.append("⛔ *No cubre:* " + " · ".join(no_cubre))
             return pts
 
         def precio_str_wa(pk):
@@ -1043,29 +1034,27 @@ with t4:
             pct = r.get("pct", 0)
             if pct > 0:
                 orig = sum(d["orig"] for d in r["det"] if d.get("orig"))
-                return f"UF {orig:.2f} -> *UF {r['total']:.2f}* (~{clp(r['total'],val_uf)}/mes)"
-            return f"*UF {r['total']:.2f}* (~{clp(r['total'],val_uf)}/mes)"
+                return "~~UF " + f"{orig:.2f}" + "~~ → *UF " + f"{r['total']:.2f}" + "* (~" + clp(r["total"], val_uf) + "/mes)"
+            return "*UF " + f"{r['total']:.2f}" + "* (~" + clp(r["total"], val_uf) + "/mes)"
 
         def asegurados_str(pk):
             r       = precios[pk]
             es_conv = pk in CONVENIOS
             if es_conv:
-                return f"\n   - {r.get('tramo','')}: UF {r['total']:.2f} ({clp(r['total'],val_uf)})"
+                return "\n   • " + r.get("tramo","") + ": UF " + f"{r['total']:.2f}" + " (" + clp(r["total"], val_uf) + ")"
             s = ""
             for d in r["det"]:
                 if d.get("final"):
                     if d.get("pct", 0) > 0 and d.get("orig"):
-                        s += (f"\n   - {d['quien']} ({d['edad']} anios): "
-                              f"UF {d['orig']:.2f} -> UF {d['final']:.2f} ({clp(d['final'],val_uf)})")
+                        s += "\n   • " + d["quien"] + " (" + str(d["edad"]) + " años): ~~UF " + f"{d['orig']:.2f}" + "~~ → UF " + f"{d['final']:.2f}" + " (" + clp(d["final"], val_uf) + ")"
                     else:
-                        s += (f"\n   - {d['quien']} ({d['edad']} anios): "
-                              f"UF {d['final']:.2f} ({clp(d['final'],val_uf)})")
+                        s += "\n   • " + d["quien"] + " (" + str(d["edad"]) + " años): UF " + f"{d['final']:.2f}" + " (" + clp(d["final"], val_uf) + ")"
             return s
 
         def cupon_str_plan(pk):
             r = precios[pk]
             if r.get("pct", 0) > 0:
-                return f"\nCupon: {r['cupon']} ({r['pct']}% dcto)"
+                return "\n🎁 *Cupón:* " + r["cupon"] + " (" + str(r["pct"]) + "% dcto)"
             return ""
 
         # ── Generar mensaje ───────────────────────────────────────
@@ -1073,45 +1062,54 @@ with t4:
             plan_wa = st.selectbox(
                 "Plan a enviar:",
                 options=planes_seleccionados,
-                format_func=lambda x: f"{CATALOGO[x]['emoji']} {CATALOGO[x]['nombre']}"
+                format_func=lambda x: CATALOGO[x]["emoji"] + " " + CATALOGO[x]["nombre"]
             )
             p   = CATALOGO[plan_wa]
             r   = precios[plan_wa]
             pts = build_puntos(plan_wa)
-
             pts_txt = "\n".join("   " + pt for pt in pts)
-            msg = (
-                f"Hola {nc}\n\n"
-                f"Te comparto tu cotizacion personalizada de *Bupa Seguros*\n"
-                f"Fecha: {hoy}\n\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                f"*COTIZACION BUPA SEGUROS*\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                f"*Cliente:* {nombre or nc} · {edad_c} anios\n"
-                f"*Prevision:* {prevision}\n"
-                f"*Plan:* {p['nombre']}{cupon_str_plan(plan_wa)}\n\n"
-                f"*Asegurados:*{asegurados_str(plan_wa)}\n\n"
-                f"*Prima mensual:*\n"
-                f"   -> {precio_str_wa(plan_wa)}\n"
-                f"   -> Anual aprox.: {clp(r['total']*12, val_uf)}\n\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                f"*Coberturas:*\n"
-                f"{pts_txt}\n\n"
-                f"*Topes:*\n"
-                f"   - Base: {p['tope_base']}\n"
-                f"   - Catastrofico: {p['tope_cat']}\n"
-                f"   - Deducible amb.: {p['ded_amb']}\n"
-                f"   - Deducible hosp.: {p['ded_hosp']}\n\n"
-                f"*Red:* {p['red']}\n"
-                f"*DPS:* {'No requerida — cubre preexistencias' if not p['dps'] else 'Requerida'}\n"
-                f"*Carencias:* {p['carencias']}\n\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                f"Te ayudo a avanzar cuando quieras.\n"
-                f"{asesor}\n"
-                f"{telefono}\n\n"
-                f"_Cotizacion tarifario Bupa Seguros mayo 2026. "
-                f"UF ${val_uf:,}. El riesgo es cubierto por Bupa Compania de Seguros de Vida S.A._"
-            ).replace(",", ".")
+
+            lineas = [
+                "Hola " + nc + " 👋",
+                "",
+                "Te comparto tu cotización personalizada de *Bupa Seguros* 🏥",
+                "📅 Fecha: " + hoy,
+                "",
+                "━━━━━━━━━━━━━━━━━━━━━",
+                "🏥 *COTIZACIÓN BUPA SEGUROS*",
+                "━━━━━━━━━━━━━━━━━━━━━",
+                "👤 *Cliente:* " + (nombre or nc) + " · " + str(edad_c) + " años",
+                "📋 *Previsión:* " + prevision,
+                "🔹 *Plan:* " + p["nombre"] + cupon_str_plan(plan_wa),
+                "",
+                "👥 *Asegurados:*" + asegurados_str(plan_wa),
+                "",
+                "💰 *Prima mensual:*",
+                "   → " + precio_str_wa(plan_wa),
+                "   → Anual aprox.: " + clp(r["total"] * 12, val_uf),
+                "",
+                "━━━━━━━━━━━━━━━━━━━━━",
+                "✅ *Coberturas:*",
+                pts_txt,
+                "",
+                "📌 *Topes:*",
+                "   • Base: " + p["tope_base"],
+                "   • Catastrófico: " + p["tope_cat"],
+                "   • Deducible amb.: " + p["ded_amb"],
+                "   • Deducible hosp.: " + p["ded_hosp"],
+                "",
+                "🏥 *Red:* " + p["red"],
+                "📋 *DPS:* " + ("No requerida — cubre preexistencias" if not p["dps"] else "Requerida"),
+                "⏳ *Carencias:* " + p["carencias"],
+                "",
+                "━━━━━━━━━━━━━━━━━━━━━",
+                "🤝 ¿Te interesa avanzar?",
+                "📱 " + asesor,
+                "📞 " + telefono,
+                "",
+                "_Cotización tarifario Bupa Seguros mayo 2026. UF $" + str(val_uf).replace(",",".") + ". El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._",
+            ]
+            msg = "\n".join(lineas)
 
         else:
             bloques = ""
@@ -1119,64 +1117,62 @@ with t4:
                 p   = CATALOGO[pk]
                 r   = precios[pk]
                 es_conv    = pk in CONVENIOS
-                es_rec_str = "\nRECOMENDADO" if pk == rec else ""
-                conv_str   = "\nConvenio: sin DPS · cubre preexistencias" if es_conv else ""
+                es_rec_str = "\n⭐ *RECOMENDADO*" if pk == rec else ""
+                conv_str   = "\n🤝 _Convenio: sin DPS · cubre preexistencias_" if es_conv else ""
                 pts        = build_puntos(pk)
-                cupon_bloque = (f"\nCupon: {r['cupon']} ({r['pct']}% dcto)"
-                                if r.get("pct", 0) > 0 else "")
-                tramo_bloque = f" · {r.get('tramo','')}" if es_conv else ""
-                pts_txt = "\n".join(pt for pt in pts[:7])
+                cupon_bloque = ("\n🎁 Cupón: " + r["cupon"] + " (" + str(r["pct"]) + "% dcto)") if r.get("pct", 0) > 0 else ""
+                tramo_bloque = (" · " + r.get("tramo","")) if es_conv else ""
+                pts_txt = "\n".join("✅ " + pt for pt in pts[:7])
 
                 bloques += (
-                    f"\n*OPCION {i} — {p['nombre']}*{tramo_bloque}{es_rec_str}{conv_str}\n\n"
-                    f"{precio_str_wa(pk)}{cupon_bloque}\n"
-                    f"{pts_txt}\n"
-                    f"Tope: {p['tope_base']} · Ded.: {p['ded_amb']}\n"
-                    f"DPS: {'No requerida' if not p['dps'] else 'Requerida'}\n"
-                    f"Carencias: {p['carencias']}\n"
-                    f"Exclusiones: Preexistencias declaradas · esteticos · exclusiones poliza\n\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━"
+                    "\n🔹 *OPCIÓN " + str(i) + " — " + p["nombre"] + "*" + tramo_bloque + es_rec_str + conv_str + "\n\n"
+                    "💰 " + precio_str_wa(pk) + cupon_bloque + "\n"
+                    + pts_txt + "\n"
+                    "📌 Tope: " + p["tope_base"] + " · Ded.: " + p["ded_amb"] + "\n"
+                    "📋 DPS: " + ("No requerida" if not p["dps"] else "Requerida") + "\n"
+                    "⏳ Carencias: " + p["carencias"] + "\n"
+                    "⛔ Exclusiones: Preexistencias declaradas · estéticos · exclusiones póliza\n\n"
+                    "━━━━━━━━━━━━━━━━━━━━━"
                 )
 
+            recom_txt = ""
             if rec in planes_seleccionados:
                 p_rec     = CATALOGO[rec]
-                recom_txt = f"\nRecomendacion: El plan *{p_rec['nombre']}* ofrece el mejor equilibrio para tu perfil.\n"
-            else:
-                recom_txt = ""
+                recom_txt = "\n💡 *Recomendación:* El plan *" + p_rec["nombre"] + "* ofrece el mejor equilibrio para tu perfil.\n"
 
-            msg = (
-                f"Hola {nc}\n\n"
-                f"Te comparto tus opciones de *Bupa Seguros*\n"
-                f"Fecha: {hoy}\n\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                f"*Cliente:* {nombre or nc} · {edad_c} anios\n"
-                f"*Prevision:* {prevision}\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                f"{bloques}\n"
-                f"{recom_txt}\n"
-                f"Conversemos y te ayudo a elegir la mejor opcion.\n"
-                f"{asesor}\n"
-                f"{telefono}\n\n"
-                f"_Cotizacion tarifario Bupa Seguros mayo 2026. "
-                f"UF ${val_uf:,}. El riesgo es cubierto por Bupa Compania de Seguros de Vida S.A._"
-            ).replace(",", ".")
+            lineas = [
+                "Hola " + nc + " 👋",
+                "",
+                "Te comparto tus opciones de *Bupa Seguros* 🏥",
+                "📅 Fecha: " + hoy,
+                "",
+                "━━━━━━━━━━━━━━━━━━━━━",
+                "👤 *Cliente:* " + (nombre or nc) + " · " + str(edad_c) + " años",
+                "📋 *Previsión:* " + prevision,
+                "━━━━━━━━━━━━━━━━━━━━━",
+                bloques,
+                recom_txt,
+                "🤝 Conversemos y te ayudo a elegir la mejor opción.",
+                "📱 " + asesor,
+                "📞 " + telefono,
+                "",
+                "_Cotización tarifario Bupa Seguros mayo 2026. UF $" + str(val_uf).replace(",",".") + ". El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._",
+            ]
+            msg = "\n".join(lineas)
 
         st.code(msg, language=None)
 
         # ── Botón WhatsApp ────────────────────────────────────────
         if telefono_cliente:
-            telefono_destino = f"56{telefono_cliente}"
+            telefono_destino = "56" + telefono_cliente
             mensaje_url      = quote(msg, safe="")
-            wa_link = (
-                f"https://web.whatsapp.com/send?"
-                f"phone={telefono_destino}&text={mensaje_url}"
-            )
-            st.link_button("Abrir WhatsApp Web", wa_link)
+            wa_link = "https://web.whatsapp.com/send?phone=" + telefono_destino + "&text=" + mensaje_url
+            st.link_button("📲 Abrir WhatsApp Web", wa_link)
         else:
-            st.warning("Ingresa el numero del cliente para abrir WhatsApp.")
+            st.warning("⚠️ Ingresa el número del cliente para abrir WhatsApp.")
 
         # ── PDFs ──────────────────────────────────────────────────
-        st.markdown("## PDFs Oficiales")
+        st.markdown("## 📄 PDFs Oficiales")
         for plan_key in planes_seleccionados:
             nombre_plan = CATALOGO[plan_key]["nombre"]
             if nombre_plan in PDFS_PLANES:
@@ -1184,11 +1180,11 @@ with t4:
                 if os.path.exists(ruta_pdf):
                     with open(ruta_pdf, "rb") as pdf_file:
                         st.download_button(
-                            label=f"Descargar {nombre_plan}",
+                            label="📄 Descargar " + nombre_plan,
                             data=pdf_file,
                             file_name=os.path.basename(ruta_pdf),
                             mime="application/pdf",
-                            key=f"pdf_{plan_key}"
+                            key="pdf_" + plan_key
                         )
 
         # ── ZIP ───────────────────────────────────────────────────
@@ -1203,32 +1199,31 @@ with t4:
         zip_buffer.seek(0)
         nombre_zip = (nombre or "cliente").replace(" ", "_")
         st.download_button(
-            label="Descargar Pack Cliente (ZIP)",
+            label="📦 Descargar Pack Cliente (ZIP)",
             data=zip_buffer,
-            file_name=f"{nombre_zip}_Cotizacion_Bupa.zip",
+            file_name=nombre_zip + "_Cotizacion_Bupa.zip",
             mime="application/zip"
         )
-        st.success(f"Mensaje listo con {len(planes_seleccionados)} plan(es) seleccionado(s).")
+        st.success("✅ Mensaje listo con " + str(len(planes_seleccionados)) + " plan(es) seleccionado(s).")
 
 # ══════════════════════════════════════════════════════════════════
-# PYME (solo informativo)
+# PYME
 # ══════════════════════════════════════════════════════════════════
 if f_pyme:
     st.markdown("---")
-    st.markdown("## Plan PYME Bupa")
-    st.info("Sin DPS colectivo · Cubre preexistencias · Minimo 2 trabajadores")
+    st.markdown("## 🏢 Plan PYME Bupa")
+    st.info("Sin DPS colectivo · Cubre preexistencias · Mínimo 2 trabajadores")
     st.markdown("""
-- Sin DPS individual — cubre a todos los trabajadores
-- Cubre preexistencias desde el primer dia
-- Precio especial por volumen segun numero de trabajadores
-- Deducible $0 en red Bupa/IntegraMediaca
+- ✅ Sin DPS individual — cubre a todos los trabajadores
+- ✅ Cubre preexistencias desde el primer día
+- ✅ Precio especial por volumen según número de trabajadores
+- ✅ Deducible $0 en red Bupa/IntegraMédica
 
-**Para cotizar necesitas:** RUT empresa · N trabajadores · Rango de edades · Prevision predominante
+**Para cotizar necesitas:** RUT empresa · N° trabajadores · Rango de edades · Previsión predominante
 
-Contacta a tu ejecutivo Bupa o ingresa a BupaSales para cotizar.
+💡 Contacta a tu ejecutivo Bupa o ingresa a BupaSales para cotizar.
 """)
 
 # ── FOOTER ────────────────────────────────────────────────────────
 st.markdown("---")
-st.caption("Uso interno · Informacion actualizada segun PDFs oficiales Bupa Seguros · "
-           "El riesgo es cubierto por Bupa Compania de Seguros de Vida S.A.")
+st.caption("🔒 Uso interno · Información actualizada según PDFs oficiales Bupa Seguros · El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A.")
