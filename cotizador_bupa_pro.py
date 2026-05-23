@@ -1225,7 +1225,7 @@ with t4:
             pts = build_puntos(plan_wa)
             es_conv = plan_wa in CONVENIOS
 
-            msg = f""Hola {nc} 👋
+            msg = f"""Hola {nc} 👋
 
 Te comparto tu cotización personalizada de *Bupa Seguros* 🏥
 📅 Fecha: {hoy}
