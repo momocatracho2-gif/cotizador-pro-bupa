@@ -51,6 +51,13 @@ div[data-testid="stMetric"]{background:white;border-radius:16px;padding:18px;box
 .stButton>button:hover,.stDownloadButton>button:hover{background:#0088c6 !important;}
 a[data-testid="stLinkButton"]{background:#25D366 !important;color:white !important;border-radius:12px !important;padding:12px 18px !important;text-decoration:none !important;font-weight:700 !important;}
 [data-testid="stAlert"]{border-radius:14px !important;}
+/* ── Ocultar menú hamburguesa, footer y header nativo de Streamlit ── */
+#MainMenu {visibility: hidden !important;}
+footer {visibility: hidden !important;}
+header[data-testid="stHeader"] {background: transparent !important;}
+[data-testid="stToolbar"] {display: none !important;}
+[data-testid="stDecoration"] {display: none !important;}
+[data-testid="stStatusWidget"] {display: none !important;}
 </style>
 """, unsafe_allow_html=True)
 
