@@ -840,7 +840,7 @@ else:
 Activa en el panel izquierdo:
 - 👴 **Plan Adulto Mayor** (acepta 60–84 años)""")
     elif edad_c > 64:
-        st.error(f"""🔴 **No hay planes regulares para {edad_c} años** (máx. 75 años).
+        st.error(f"""⛔ **No hay planes regulares para {edad_c} años** (máx. 75 años).
 Activa en el panel izquierdo:
 - 👴 **Plan Adulto Mayor** (acepta 60–84 años)
 _(IntegraMédica 100% solo acepta hasta 64 años)_""")
