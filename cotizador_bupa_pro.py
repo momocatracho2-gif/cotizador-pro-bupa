@@ -155,8 +155,27 @@ header[data-testid="stHeader"] {background: transparent !important;}
 
 ADMIN_KEY = st.secrets.get("ADMIN_KEY", "bupapro2026")
 
+ASESORES_FILE = os.path.join(os.path.dirname(__file__), "asesores.json")
+
 def load_asesores():
-    """Carga asesores desde Streamlit Secrets."""
+    """Carga asesores desde asesores.json (Railway) o st.secrets (Streamlit Cloud) como fallback."""
+    # 1. Intentar desde asesores.json (Railway)
+    if os.path.exists(ASESORES_FILE):
+        try:
+            with open(ASESORES_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if data:
+                return {u: {
+                    "password": d.get("password",""),
+                    "nombre":   d.get("nombre", u),
+                    "telefono": d.get("telefono",""),
+                    "ciudad":   d.get("ciudad","Santiago"),
+                    "email":    d.get("email",""),
+                    "activo":   d.get("activo", True),
+                } for u, d in data.items()}
+        except Exception:
+            pass
+    # 2. Fallback: Streamlit Secrets (Streamlit Cloud)
     try:
         raw = st.secrets.get("asesores", {})
         asesores = {}
@@ -169,35 +188,41 @@ def load_asesores():
                 "email":     datos.get("email", ""),
                 "activo":    datos.get("activo", True),
             }
-        if not asesores:
-            raise ValueError("Sin asesores en secrets")
-        return asesores
+        if asesores:
+            return asesores
     except Exception:
-        # Fallback local si no hay secrets configurados
-        return {
-            "romulo": {
-                "password": "seguros2026",
-                "nombre":   "Rómulo Lupi",
-                "telefono": "+569 90790892",
-                "ciudad":   "Santiago",
-                "email":    "romulo.lupi@bupa.cl",
-                "activo":   True,
-            },
-            "demo": {
-                "password": "demo123",
-                "nombre":   "Asesor Demo",
-                "telefono": "+569 00000000",
-                "ciudad":   "Santiago",
-                "email":    "demo@bupa.cl",
-                "activo":   True,
-            },
-        }
+        pass
+    # 3. Fallback hardcodeado
+    return {
+        "romulo": {
+            "password": "seguros2026",
+            "nombre":   "Rómulo Lupi",
+            "telefono": "+569 90790892",
+            "ciudad":   "Santiago",
+            "email":    "romulo.lupi@bupa.cl",
+            "activo":   True,
+        },
+        "demo": {
+            "password": "demo123",
+            "nombre":   "Asesor Demo Bupa",
+            "telefono": "+569 00000000",
+            "ciudad":   "Santiago",
+            "email":    "demo@bupa.cl",
+            "activo":   True,
+        },
+    }
 
 def save_asesores(data):
-    """
-    En Streamlit Cloud los secrets se editan manualmente en el panel.
-    Esta función muestra las instrucciones para copiar y pegar.
-    """
+    """Guarda en asesores.json si existe el archivo (Railway), si no genera TOML para Streamlit."""
+    if os.path.exists(ASESORES_FILE):
+        try:
+            with open(ASESORES_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            st.session_state["secrets_pendientes"] = "__json_ok__"
+            return
+        except Exception as e:
+            st.error(f"Error guardando asesores.json: {e}")
+    # Fallback: generar TOML para Streamlit Cloud
     lines = ['ADMIN_KEY = "' + ADMIN_KEY + '"', "", "[asesores]"]
     for usuario, d in data.items():
         lines.append("")
@@ -361,25 +386,33 @@ if st.session_state.es_admin:
                     save_asesores(asesores)
                     st.warning("Asesor eliminado. Copia el bloque TOML de abajo en Streamlit Secrets y haz Reboot.")
 
-            # Mostrar TOML siempre visible para cualquier accion realizada
+            # Mostrar resultado según entorno
             if st.session_state.get("secrets_pendientes"):
-                st.markdown("---")
-                st.markdown("#### Paso 1 — Copia este bloque:")
-                st.code(st.session_state["secrets_pendientes"], language="toml")
-                st.markdown("#### Paso 2 — Pégalo aquí:")
-                st.link_button(
-                    "Ir a Streamlit Cloud → Settings → Secrets",
-                    "https://share.streamlit.io"
-                )
-                st.info("Después de pegar, haz clic en Save → luego Reboot app para aplicar los cambios.")
+                if st.session_state["secrets_pendientes"] == "__json_ok__":
+                    st.success("✅ Cambios guardados en asesores.json — activos de inmediato.")
+                    st.session_state.pop("secrets_pendientes", None)
+                else:
+                    st.markdown("---")
+                    st.markdown("#### Paso 1 — Copia este bloque:")
+                    st.code(st.session_state["secrets_pendientes"], language="toml")
+                    st.markdown("#### Paso 2 — Pégalo aquí:")
+                    st.link_button(
+                        "Ir a Streamlit Cloud → Settings → Secrets",
+                        "https://share.streamlit.io"
+                    )
+                    st.info("Después de pegar, haz clic en Save → luego Reboot app para aplicar los cambios.")
 
-    # ── Visualizador de Secrets TOML ──────────────────────────────
+    # ── Visualizador resultado guardado ───────────────────────────
     if st.session_state.get("secrets_pendientes"):
-        st.markdown("---")
-        st.markdown("### 📋 Copia esto en Streamlit Cloud → Settings → Secrets")
-        st.info("Ve a tu app en share.streamlit.io → Settings → Secrets y reemplaza todo con este bloque:")
-        st.code(st.session_state["secrets_pendientes"], language="toml")
-        st.warning("Después de pegar los secrets, haz Reboot de la app en Streamlit Cloud para aplicar los cambios.")
+        if st.session_state["secrets_pendientes"] == "__json_ok__":
+            st.success("✅ Cambios guardados en asesores.json — activos de inmediato.")
+            st.session_state.pop("secrets_pendientes", None)
+        else:
+            st.markdown("---")
+            st.markdown("### 📋 Copia esto en Streamlit Cloud → Settings → Secrets")
+            st.info("Ve a tu app en share.streamlit.io → Settings → Secrets y reemplaza todo con este bloque:")
+            st.code(st.session_state["secrets_pendientes"], language="toml")
+            st.warning("Después de pegar los secrets, haz Reboot de la app en Streamlit Cloud para aplicar los cambios.")
 
     st.markdown("---")
     if st.button("Cerrar sesión admin"):

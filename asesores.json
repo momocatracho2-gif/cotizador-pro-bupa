@@ -1,0 +1,18 @@
+{
+  "romulo": {
+    "password": "seguros2026",
+    "nombre": "Rómulo Lupi",
+    "telefono": "+569 90790892",
+    "ciudad": "Santiago",
+    "email": "romulo.lupi@bupa.cl",
+    "activo": true
+  },
+  "demo": {
+    "password": "demo123",
+    "nombre": "Asesor Demo Bupa",
+    "telefono": "+569 00000000",
+    "ciudad": "Santiago",
+    "email": "demo@bupa.cl",
+    "activo": true
+  }
+}
