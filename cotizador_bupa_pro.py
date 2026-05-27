@@ -153,7 +153,10 @@ header[data-testid="stHeader"] {background: transparent !important;}
 # activo = true
 # ══════════════════════════════════════════════════════════════════
 
-ADMIN_KEY = st.secrets.get("ADMIN_KEY", "bupapro2026")
+try:
+    ADMIN_KEY = os.environ.get("ADMIN_KEY") or st.secrets.get("ADMIN_KEY", "bupapro2026")
+except Exception:
+    ADMIN_KEY = os.environ.get("ADMIN_KEY", "bupapro2026")
 
 ASESORES_FILE = os.path.join(os.path.dirname(__file__), "asesores.json")
 
