@@ -73,6 +73,20 @@ div[data-testid="stMetric"]{background:white;border-radius:16px;padding:18px;box
 .stButton>button:hover,.stDownloadButton>button:hover{background:#0088c6 !important;}
 a[data-testid="stLinkButton"]{background:#25D366 !important;color:white !important;border-radius:12px !important;padding:12px 18px !important;text-decoration:none !important;font-weight:700 !important;}
 [data-testid="stAlert"]{border-radius:14px !important;}
+/* ── Forzar tema claro en toda la app (evita modo oscuro del SO) ── */
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+    background-color:#F4F8FC !important; color-scheme: light !important;
+}
+.stSelectbox div[data-baseweb="select"] > div {background:white !important;color:#222 !important;}
+.stSelectbox div[data-baseweb="select"] span {color:#222 !important;}
+.stSelectbox svg {fill:#555 !important;}
+[data-baseweb="popover"], [data-baseweb="menu"] {background:white !important;}
+[data-baseweb="menu"] li, [data-baseweb="menu"] [role="option"] {background:white !important;color:#222 !important;}
+[data-baseweb="menu"] li:hover {background:#EBF4FF !important;}
+textarea {background:white !important;color:#222 !important;}
+[data-testid="stRadio"] label, [data-testid="stCheckbox"] label {color:#1f2d3d !important;}
+[data-testid="stExpander"] {background:white !important;border:1px solid #d9e6f2 !important;border-radius:12px !important;}
+[data-testid="stExpander"] summary {color:#003A70 !important;font-weight:700 !important;}
 /* ── Desktop: ocultar hamburguesa y header nativo ── */
 #MainMenu {visibility: hidden !important;}
 footer {visibility: hidden !important;}
