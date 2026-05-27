@@ -949,7 +949,10 @@ with t3:
         c1,c2=st.columns(2)
         with c1:
             st.markdown("#### 🩺 Ambulatorio")
-            for item in ["Consultas medicina general (ilimitadas)","Videoconsultas (ilimitadas)","Consultas especialidad","Urgencias","Exámenes laboratorio e imagenología","Procedimientos diagnósticos y terapéuticos"]:
+            items_amb = ["Consultas medicina general (ilimitadas)","Videoconsultas (ilimitadas)","Consultas especialidad","Exámenes laboratorio e imagenología","Procedimientos diagnósticos y terapéuticos"]
+            if plan_det != "AM70":
+                items_amb.insert(3, "Urgencias")
+            for item in items_amb:
                 if "❌" not in p["amb"]: st.write("✅ **"+p["amb"]+"** — "+item)
                 else: st.write("❌ "+item)
             if p["salud_mental"]: st.write("✅ **Psicología y Psiquiatría** ambulatoria")
