@@ -1210,16 +1210,14 @@ with t4:
         else:
             st.warning("⚠️ Ingresa el número del cliente para abrir WhatsApp.")
 
-        # Links PDF
-        st.markdown("## 📎 Condiciones Oficiales")
-        st.caption("Los clientes pueden ver o descargar directamente desde el link")
-        cols_pdf = st.columns(min(len(planes_seleccionados), 3))
-        for i, plan_key in enumerate(planes_seleccionados):
-            np2 = CATALOGO[plan_key]["nombre"]
-            if np2 in PDFS_PLANES:
-                with cols_pdf[i % 3]:
-                    st.link_button("📄 "+np2, PDFS_PLANES[np2], use_container_width=True)
         st.success("✅ Mensaje listo con "+str(len(planes_seleccionados))+" plan(es) seleccionado(s).")
+        with st.expander("📎 Verificar PDFs"):
+            cols_pdf = st.columns(min(len(planes_seleccionados), 3))
+            for i, plan_key in enumerate(planes_seleccionados):
+                np2 = CATALOGO[plan_key]["nombre"]
+                if np2 in PDFS_PLANES:
+                    with cols_pdf[i % 3]:
+                        st.link_button("📄 "+np2, PDFS_PLANES[np2], use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════
 # PYME
