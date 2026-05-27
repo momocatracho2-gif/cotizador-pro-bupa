@@ -358,21 +358,23 @@ ASESOR_EMAIL    = asesor_d.get("email",    "")
 # ══════════════════════════════════════════════════════════════════
 # PDFs
 # ══════════════════════════════════════════════════════════════════
+_PDF_BASE = "https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/"
 PDFS_PLANES = {
-    "Bupa + Protección 70/25":      "pdfs/Seguro BMP Bupa + Proteccion 70-25.pdf",
-    "Bupa + Protección 70/70":      "pdfs/Seguro BMP Bupa + Proteccion 70-70.pdf",
-    "Bupa + Protección 80/70":      "pdfs/Seguro BMP Bupa + Proteccion 80-70.pdf",
-    "Bupa Ambulatorio 70":          "pdfs/Seguro BMPA70 Bupa Ambulatorio + Proteccion.pdf",
-    "Bupa Cuidado Total 60":        "pdfs/Seguro BCT Bupa Cuidado Total 60.pdf",
-    "Bupa Cuidado Total 70":        "pdfs/Seguro BCT Bupa Cuidado Total 70.pdf",
-    "Bupa Cuidado Total 80":        "pdfs/Seguro BCT Bupa Cuidado Total 80.pdf",
-    "Bupa MultiSalud":              "pdfs/Seguro BMS Bupa MultiSalud.pdf",
-    "Bupa MultiSalud Pro":          "pdfs/Seguro BMS Bupa MultiSalud Pro.pdf",
-    "Dental IntegraMédica":         "pdfs/Plan Dental IntegraMedica 68%.pdf",
-    "IntegraMédica 100%":           "pdfs/Plan IntegraMedica 100%.pdf",
-    "Plan Adulto Mayor 70%":        "pdfs/Plan IntegraMedica Adulto Mayor 70.pdf",
-    "Bupa Complementa":             "pdfs/Seguro BCO Bupa Complementa.pdf",
-    "PYME Digital":                 "pdfs/PYME Digital.pdf",
+    "Bupa + Protección 70/25":      _PDF_BASE + "Seguro%20BMP%20Bupa%20%2B%20Proteccion%2070-25.pdf",
+    "Bupa + Protección 70/70":      _PDF_BASE + "Seguro%20BMP%20Bupa%20%2B%20Proteccion%2070-70.pdf",
+    "Bupa + Protección 80/70":      _PDF_BASE + "Seguro%20BMP%20Bupa%20%2B%20Proteccion%2080-70.pdf",
+    "Bupa Ambulatorio 70":          _PDF_BASE + "Seguro%20BMPA70%20Bupa%20Ambulatorio%20%2B%20Pro...pdf",
+    "Bupa Cuidado Total 60":        _PDF_BASE + "Seguro%20BCT%20Bupa%20Cuidado%20Total%2060.pdf",
+    "Bupa Cuidado Total 70":        _PDF_BASE + "Seguro%20BCT%20Bupa%20Cuidado%20Total%2070.pdf",
+    "Bupa Cuidado Total 80":        _PDF_BASE + "Seguro%20BCT%20Bupa%20Cuidado%20Total%2080.pdf",
+    "Bupa MultiSalud":              _PDF_BASE + "Seguro%20BMS%20Bupa%20MultiSalud.pdf",
+    "Bupa MultiSalud Pro":          _PDF_BASE + "Seguro%20BMS%20Bupa%20MultiSalud%20Pro.pdf",
+    "Mi Dental IntegraMédica 68%":  _PDF_BASE + "Plan%20Dental%20Integram%C3%A9dica%2068%25.pdf",
+    "IntegraMédica 100%":           _PDF_BASE + "Plan%20Integram%C3%A9dica%20100%25.pdf",
+    "Plan Adulto Mayor 70%":        _PDF_BASE + "Plan%20Integram%C3%A9dica%20Adulto%20Mayor%2070.pdf",
+    "Bupa Complementa":             _PDF_BASE + "Seguro%20BCO%20Bupa%20Complementa.pdf",
+    "PYME Digital":                 _PDF_BASE + "PYME%20Digital.pdf",
+    "tarifario":                    _PDF_BASE + "tarifario%20Bupa%20Seguros%20marzo%202026.pdf",
 }
 
 # ══════════════════════════════════════════════════════════════════
@@ -1042,6 +1044,7 @@ with t4:
             plan_wa=st.selectbox("Plan a enviar:",options=planes_seleccionados,format_func=lambda x:CATALOGO[x]["emoji"]+" "+CATALOGO[x]["nombre"])
             p=CATALOGO[plan_wa]; r=precios[plan_wa]; pts=build_puntos(plan_wa)
             pts_txt="\n".join("   "+pt for pt in pts)
+            pdf_link_solo = ("\n📎 *Descarga las condiciones del plan:*\n   "+PDFS_PLANES[p["nombre"]]) if p["nombre"] in PDFS_PLANES else ""
             msg="\n".join([
                 "Hola "+nc+" 👋","",
                 "Te comparto tu cotización personalizada de *Bupa Seguros* 🏥",
@@ -1064,7 +1067,8 @@ with t4:
                 "   • Deducible hosp.: "+p["ded_hosp"],"",
                 "🏥 *Red:* "+p["red"],
                 "📋 *DPS:* "+("No requerida — cubre preexistencias" if not p["dps"] else "Requerida"),
-                "⏳ *Carencias:* "+p["carencias"],"",
+                "⏳ *Carencias:* "+p["carencias"],
+                pdf_link_solo,"",
                 "━━━━━━━━━━━━━━━━━━━━━",
                 "🤝 ¿Te interesa avanzar?",
                 "📱 "+ASESOR_NOMBRE,
@@ -1153,12 +1157,13 @@ with t4:
                         dif = "Hosp: *"+p["hosp"]+"* · Amb: *"+p["amb"]+"* · Tope: *"+p["tope_base"]+"*"
                     else:
                         dif = "Hosp: *"+p["hosp"]+"* · Amb: *"+p["amb"]+"*"
+                    pdf_lnk = ("\n   📎 "+PDFS_PLANES[p["nombre"]]) if p["nombre"] in PDFS_PLANES else ""
                     bloques += (
                         "\n🔹 *"+p["emoji"]+" "+p["nombre"]+"*"+rec_s+"\n"
                         "   "+dif+"\n"
                         "   💰 "+precio_wa(pk)+cup_b+"\n"
                         "   Anual aprox.: "+clp(r["total"]*12,val_uf)+"\n"
-                        "   "+aseg_str(pk).strip()+"\n"
+                        "   "+aseg_str(pk).strip()+pdf_lnk+"\n"
                     )
                 bloques += "\n━━━━━━━━━━━━━━━━━━━━━\n"
 
@@ -1171,6 +1176,7 @@ with t4:
                 pts = build_puntos(pk)
                 cup_b = ("\n🎁 Cupón: "+r["cupon"]+" ("+str(r["pct"])+"% dcto)") if r.get("pct",0)>0 else ""
                 tr_b = (" · "+r.get("tramo","")) if es_conv else ""
+                pdf_lnk_s = ("\n   📎 "+PDFS_PLANES[p["nombre"]]) if p["nombre"] in PDFS_PLANES else ""
                 num = idx_offset + i
                 bloques += (
                     "\n🔹 *OPCIÓN "+str(num)+" — "+p["nombre"]+"*"+tr_b+rec_s+conv_s+"\n\n"
@@ -1178,7 +1184,7 @@ with t4:
                     +"\n".join("   ✅ "+pt for pt in pts[:7])+"\n"
                     "   📌 Tope: "+p["tope_base"]+" · Ded.: "+p["ded_amb"]+"\n"
                     "   📋 DPS: "+("No requerida" if not p["dps"] else "Requerida")+"\n"
-                    "   ⏳ Carencias: "+p["carencias"]+"\n\n"
+                    "   ⏳ Carencias: "+p["carencias"]+pdf_lnk_s+"\n\n"
                     "━━━━━━━━━━━━━━━━━━━━━"
                 )
 
@@ -1206,26 +1212,15 @@ with t4:
         else:
             st.warning("⚠️ Ingresa el número del cliente para abrir WhatsApp.")
 
-        # PDFs
-        st.markdown("## 📄 PDFs Oficiales")
-        for plan_key in planes_seleccionados:
-            np2=CATALOGO[plan_key]["nombre"]
+        # Links PDF
+        st.markdown("## 📎 Condiciones Oficiales")
+        st.caption("Los clientes pueden ver o descargar directamente desde el link")
+        cols_pdf = st.columns(min(len(planes_seleccionados), 3))
+        for i, plan_key in enumerate(planes_seleccionados):
+            np2 = CATALOGO[plan_key]["nombre"]
             if np2 in PDFS_PLANES:
-                ruta=PDFS_PLANES[np2]
-                if os.path.exists(ruta):
-                    with open(ruta,"rb") as f:
-                        st.download_button(label="📄 Descargar "+np2,data=f,file_name=os.path.basename(ruta),mime="application/pdf",key="pdf_"+plan_key)
-        # ZIP
-        zb=io.BytesIO()
-        with zipfile.ZipFile(zb,"w") as zf:
-            for plan_key in planes_seleccionados:
-                np2=CATALOGO[plan_key]["nombre"]
-                if np2 in PDFS_PLANES:
-                    ruta=PDFS_PLANES[np2]
-                    if os.path.exists(ruta): zf.write(ruta,arcname=os.path.basename(ruta))
-        zb.seek(0)
-        st.download_button(label="📦 Descargar Pack Cliente (ZIP)",data=zb,
-            file_name=(nombre or "cliente").replace(" ","_")+"_Cotizacion_Bupa.zip",mime="application/zip")
+                with cols_pdf[i % 3]:
+                    st.link_button("📄 "+np2, PDFS_PLANES[np2], use_container_width=True)
         st.success("✅ Mensaje listo con "+str(len(planes_seleccionados))+" plan(es) seleccionado(s).")
 
 # ══════════════════════════════════════════════════════════════════
