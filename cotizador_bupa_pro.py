@@ -687,9 +687,35 @@ def es_compatible(pk, edad_c, prevision_base, f_sin_dps, f_preex, f_cat, f_libre
     return True
 
 # ══════════════════════════════════════════════════════════════════
-# SIDEBAR
+# DETECCIÓN MÓVIL vía query param + JS
 # ══════════════════════════════════════════════════════════════════
-with st.sidebar:
+st.components.v1.html("""
+<script>
+(function(){
+    var w = window.innerWidth || screen.width;
+    var url = new URL(window.parent.location.href);
+    var actual = url.searchParams.get('_mv');
+    var val = w <= 768 ? '1' : '0';
+    if (actual !== val) {
+        url.searchParams.set('_mv', val);
+        window.parent.history.replaceState({}, '', url);
+        window.parent.location.reload();
+    }
+})();
+</script>
+""", height=0)
+
+try:
+    es_movil = st.query_params.get("_mv", "0") == "1"
+except Exception:
+    es_movil = False
+
+# ══════════════════════════════════════════════════════════════════
+# SIDEBAR (desktop) o EXPANDER (móvil)
+# ══════════════════════════════════════════════════════════════════
+_ctx = st.sidebar if not es_movil else st.expander("⚙️ Filtros y datos del cliente", expanded=True)
+
+with _ctx:
     st.markdown("## 👤 Datos del Cliente")
     nombre    = st.text_input("Nombre completo", placeholder="Ej: Franco Lupi")
     edad_c    = st.number_input("Edad contratante", 18, 84, 35)
@@ -718,8 +744,8 @@ with st.sidebar:
     val_uf = st.number_input("Valor UF ($)", 30000, 50000, uf_default, 10,
         help="Se actualiza automáticamente cada hora desde mindicador.cl")
     st.markdown("**Tramo convenios:**")
-    tramo_am     = st.selectbox("👴 Adulto Mayor",       list(AM_TARIFAS.keys()),           key="tramo_am")
-    tramo_im     = st.selectbox("💊 IntegraMédica 100%", list(IM100_TARIFAS.keys()),         key="tramo_im")
+    tramo_am     = st.selectbox("👴 Adulto Mayor",       list(AM_TARIFAS.keys()),            key="tramo_am")
+    tramo_im     = st.selectbox("💊 IntegraMédica 100%", list(IM100_TARIFAS.keys()),          key="tramo_im")
     tramo_dental = st.selectbox("🦷 Mi Dental",          list(DENTAL_TARIFAS_MENSUAL.keys()), key="tramo_dental")
 
     st.markdown("---")
@@ -750,7 +776,6 @@ with st.sidebar:
         st.session_state.usuario  = ""
         st.rerun()
     st.caption("Sesión: " + st.session_state.usuario)
-
 f_sin_dps = f_preex
 
 # ══════════════════════════════════════════════════════════════════
@@ -775,9 +800,9 @@ for pk in planes_compatibles:
 planes_compatibles = [pk for pk in planes_compatibles if pk in precios]
 
 if edad_c > 75:
-    st.sidebar.error(f"🔴 {edad_c} años: sin planes regulares. Activa 👴 Adulto Mayor.")
+    (st.error if es_movil else st.sidebar.error)(f"🔴 {edad_c} años: sin planes regulares. Activa 👴 Adulto Mayor.")
 elif edad_c >= 60:
-    st.sidebar.info(f"💡 {edad_c} años: también aplica Plan Adulto Mayor (60-84 años).")
+    (st.info if es_movil else st.sidebar.info)(f"💡 {edad_c} años: también aplica Plan Adulto Mayor (60-84 años).")
 
 orden_rec = ["BCT80","BCT70","80/70","MULTIPRO","BCT60","70/70","MULTI","70/25","AMB70"]
 rec = next((p for p in orden_rec if p in precios and precios[p].get("total")), "")
