@@ -1072,26 +1072,118 @@ with t4:
                 "_Cotización tarifario Bupa Seguros mayo 2026. UF "+uf_fmt+". El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._",
             ])
         else:
-            bloques=""
-            for i,pk in enumerate(planes_seleccionados,1):
-                p=CATALOGO[pk]; r=precios[pk]; es_conv=pk in CONVENIOS
-                rec_s="\n⭐ *RECOMENDADO*" if pk==rec else ""
-                conv_s="\n🤝 _Convenio: sin DPS · cubre preexistencias_" if es_conv else ""
-                pts=build_puntos(pk)
-                cup_b=("\n🎁 Cupón: "+r["cupon"]+" ("+str(r["pct"])+"% dcto)") if r.get("pct",0)>0 else ""
-                tr_b=(" · "+r.get("tramo","")) if es_conv else ""
-                bloques+=(
-                    "\n🔹 *OPCIÓN "+str(i)+" — "+p["nombre"]+"*"+tr_b+rec_s+conv_s+"\n\n"
+            # ── Definición de familias de planes similares ─────────────
+            FAMILIAS = {
+                "BCT": {
+                    "claves": ["BCT60","BCT70","BCT80"],
+                    "titulo": "Bupa Cuidado Total",
+                    "descripcion_comun": (
+                        "✅ Libre elección de médico y clínica\n"
+                        "🧠 Salud mental (psicología y psiquiatría)\n"
+                        "🍼 Maternidad incluida\n"
+                        "💊 Medicamentos: 50% genérico / 30% marca con receta (tope $25.000/mes)\n"
+                        "🦷 62% dcto IntegraMédica\n"
+                        "➖ Deducible: UF 1/año (GRATIS en Red Bupa)\n"
+                        "🏥 Red: Libre elección + cobertura extra Red Bupa\n"
+                        "📋 DPS requerida · ⛔ Sin extensión catastrófica\n"
+                        "⏳ Carencias: Bariátrica, Septoplastía, Disforia de Género: 1 año"
+                    ),
+                },
+                "BP": {
+                    "claves": ["70/25","70/70","80/70"],
+                    "titulo": "Bupa + Protección",
+                    "descripcion_comun": (
+                        "⚡ Catastrófico: 100% hasta UF 9.500\n"
+                        "🍼 Maternidad incluida\n"
+                        "💀 Muerte accidental: UF 500\n"
+                        "💊 Medicamentos: 50% genérico / 20% marca (tope $15.000/mes)\n"
+                        "🦷 62% dcto IntegraMédica\n"
+                        "➖ Deducible amb.: UF 0,5/año · Hosp.: UF 5/año\n"
+                        "🏥 Red: Clínica Bupa Santiago + IntegraMédica\n"
+                        "📋 DPS requerida · Solo FONASA\n"
+                        "⏳ Carencias: Bariátrica, ocular láser, rinolaringológica: 1 año"
+                    ),
+                },
+                "MULTI": {
+                    "claves": ["MULTI","MULTIPRO"],
+                    "titulo": "Bupa MultiSalud",
+                    "descripcion_comun": (
+                        "⚡ Catastrófico: 2 capas hasta UF 7.500\n"
+                        "🍼 Maternidad incluida\n"
+                        "🧠 Salud mental (psicología y psiquiatría)\n"
+                        "💊 Medicamentos: 50% genérico / 20% marca (tope $15.000/mes)\n"
+                        "🦷 62% dcto IntegraMédica\n"
+                        "🏥 Red ampliada: Bupa · Dávila · Interclinica · Santa María · otros\n"
+                        "📋 DPS requerida · Solo FONASA\n"
+                        "⏳ Carencias: Bariátrica, ocular láser, rinolaringológica: 1 año"
+                    ),
+                },
+            }
+
+            def detectar_familia(seleccionados):
+                """Retorna (familia_key, claves_en_familia, claves_fuera) o None si no hay familia."""
+                for fk, fdata in FAMILIAS.items():
+                    en_familia = [pk for pk in seleccionados if pk in fdata["claves"]]
+                    fuera = [pk for pk in seleccionados if pk not in fdata["claves"]]
+                    if len(en_familia) >= 2:
+                        return fk, en_familia, fuera
+                return None, [], list(seleccionados)
+
+            familia_key, planes_familia, planes_solos = detectar_familia(planes_seleccionados)
+
+            bloques = ""
+
+            # ── Bloque agrupado para planes de la misma familia ─────────
+            if familia_key:
+                fdata = FAMILIAS[familia_key]
+                bloques += "\n🏥 *FAMILIA: "+fdata["titulo"]+"*\n\n"
+                bloques += fdata["descripcion_comun"] + "\n\n"
+                bloques += "📊 *Diferencia entre variantes: cobertura (%) y tope base*\n"
+                bloques += "━━━━━━━━━━━━━━━━━━━━━\n"
+                for pk in planes_familia:
+                    p = CATALOGO[pk]; r = precios[pk]
+                    rec_s = " ⭐ RECOMENDADO" if pk == rec else ""
+                    cup_b = ("\n   🎁 Cupón: "+r["cupon"]+" ("+str(r["pct"])+"% dcto)") if r.get("pct",0)>0 else ""
+                    # Diferencias clave según familia
+                    if familia_key == "BCT":
+                        dif = "Hosp y amb: *"+p["hosp"]+"* · Tope: *"+p["tope_base"]+"*"
+                    elif familia_key == "BP":
+                        dif = "Hosp: *"+p["hosp"]+"* · Amb: *"+p["amb"]+"* · Tope: *"+p["tope_base"]+"*"
+                    elif familia_key == "MULTI":
+                        dif = "Hosp: *"+p["hosp"]+"* · Amb: *"+p["amb"]+"* · Tope: *"+p["tope_base"]+"*"
+                    else:
+                        dif = "Hosp: *"+p["hosp"]+"* · Amb: *"+p["amb"]+"*"
+                    bloques += (
+                        "\n🔹 *"+p["emoji"]+" "+p["nombre"]+"*"+rec_s+"\n"
+                        "   "+dif+"\n"
+                        "   💰 "+precio_wa(pk)+cup_b+"\n"
+                        "   Anual aprox.: "+clp(r["total"]*12,val_uf)+"\n"
+                        "   "+aseg_str(pk).strip()+"\n"
+                    )
+                bloques += "\n━━━━━━━━━━━━━━━━━━━━━\n"
+
+            # ── Bloques individuales para planes fuera de la familia ────
+            idx_offset = len(planes_familia) if familia_key else 0
+            for i, pk in enumerate(planes_solos, 1):
+                p = CATALOGO[pk]; r = precios[pk]; es_conv = pk in CONVENIOS
+                rec_s = "\n⭐ *RECOMENDADO*" if pk == rec else ""
+                conv_s = "\n🤝 _Convenio: sin DPS · cubre preexistencias_" if es_conv else ""
+                pts = build_puntos(pk)
+                cup_b = ("\n🎁 Cupón: "+r["cupon"]+" ("+str(r["pct"])+"% dcto)") if r.get("pct",0)>0 else ""
+                tr_b = (" · "+r.get("tramo","")) if es_conv else ""
+                num = idx_offset + i
+                bloques += (
+                    "\n🔹 *OPCIÓN "+str(num)+" — "+p["nombre"]+"*"+tr_b+rec_s+conv_s+"\n\n"
                     "💰 "+precio_wa(pk)+cup_b+"\n"
-                    +"\n".join("✅ "+pt for pt in pts[:7])+"\n"
-                    "📌 Tope: "+p["tope_base"]+" · Ded.: "+p["ded_amb"]+"\n"
-                    "📋 DPS: "+("No requerida" if not p["dps"] else "Requerida")+"\n"
-                    "⏳ Carencias: "+p["carencias"]+"\n"
-                    "⛔ Exclusiones: Preexistencias declaradas · estéticos · exclusiones póliza\n\n"
+                    +"\n".join("   ✅ "+pt for pt in pts[:7])+"\n"
+                    "   📌 Tope: "+p["tope_base"]+" · Ded.: "+p["ded_amb"]+"\n"
+                    "   📋 DPS: "+("No requerida" if not p["dps"] else "Requerida")+"\n"
+                    "   ⏳ Carencias: "+p["carencias"]+"\n\n"
                     "━━━━━━━━━━━━━━━━━━━━━"
                 )
-            rec_t=("\n💡 *Recomendación:* El plan *"+CATALOGO[rec]["nombre"]+"* ofrece el mejor equilibrio.\n") if rec in planes_seleccionados else ""
-            msg="\n".join([
+
+            rec_t = ("\n💡 *Recomendación:* El plan *"+CATALOGO[rec]["nombre"]+"* ofrece el mejor equilibrio.\n") if rec in planes_seleccionados else ""
+            msg = "\n".join([
                 "Hola "+nc+" 👋","",
                 "Te comparto tus opciones de *Bupa Seguros* 🏥",
                 "📅 Fecha: "+hoy,"",
