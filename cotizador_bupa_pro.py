@@ -358,23 +358,21 @@ ASESOR_EMAIL    = asesor_d.get("email",    "")
 # ══════════════════════════════════════════════════════════════════
 # PDFs
 # ══════════════════════════════════════════════════════════════════
-_PDF_BASE = "https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/"
 PDFS_PLANES = {
-    "Bupa + Protección 70/25":      _PDF_BASE + "Seguro%20BMP%20Bupa%20%2B%20Proteccion%2070-25.pdf",
-    "Bupa + Protección 70/70":      _PDF_BASE + "Seguro%20BMP%20Bupa%20%2B%20Proteccion%2070-70.pdf",
-    "Bupa + Protección 80/70":      _PDF_BASE + "Seguro%20BMP%20Bupa%20%2B%20Proteccion%2080-70.pdf",
-    "Bupa Ambulatorio 70":          _PDF_BASE + "Seguro%20BMPA70%20Bupa%20Ambulatorio%20%2B%20Pro...pdf",
-    "Bupa Cuidado Total 60":        _PDF_BASE + "Seguro%20BCT%20Bupa%20Cuidado%20Total%2060.pdf",
-    "Bupa Cuidado Total 70":        _PDF_BASE + "Seguro%20BCT%20Bupa%20Cuidado%20Total%2070.pdf",
-    "Bupa Cuidado Total 80":        _PDF_BASE + "Seguro%20BCT%20Bupa%20Cuidado%20Total%2080.pdf",
-    "Bupa MultiSalud":              _PDF_BASE + "Seguro%20BMS%20Bupa%20MultiSalud.pdf",
-    "Bupa MultiSalud Pro":          _PDF_BASE + "Seguro%20BMS%20Bupa%20MultiSalud%20Pro.pdf",
-    "Mi Dental IntegraMédica 68%":  _PDF_BASE + "Plan%20Dental%20Integram%C3%A9dica%2068%25.pdf",
-    "IntegraMédica 100%":           _PDF_BASE + "Plan%20Integram%C3%A9dica%20100%25.pdf",
-    "Plan Adulto Mayor 70%":        _PDF_BASE + "Plan%20Integram%C3%A9dica%20Adulto%20Mayor%2070.pdf",
-    "Bupa Complementa":             _PDF_BASE + "Seguro%20BCO%20Bupa%20Complementa.pdf",
-    "PYME Digital":                 _PDF_BASE + "PYME%20Digital.pdf",
-    "tarifario":                    _PDF_BASE + "tarifario%20Bupa%20Seguros%20marzo%202026.pdf",
+    "Bupa + Protección 70/25":     "https://tinyurl.com/bupa-bp7025",
+    "Bupa + Protección 70/70":     "https://tinyurl.com/bupa-bp7070",
+    "Bupa + Protección 80/70":     "https://tinyurl.com/bupa-bp8070",
+    "Bupa Ambulatorio 70":         "https://tinyurl.com/bupa-amb70",
+    "Bupa Cuidado Total 60":       "https://tinyurl.com/bupa-bct60",
+    "Bupa Cuidado Total 70":       "https://tinyurl.com/bupa-bct70",
+    "Bupa Cuidado Total 80":       "https://tinyurl.com/bupa-bct80",
+    "Bupa MultiSalud":             "https://tinyurl.com/bupa-multi",
+    "Bupa MultiSalud Pro":         "https://tinyurl.com/bupa-multipro",
+    "Mi Dental IntegraMédica 68%": "https://tinyurl.com/bupa-dental",
+    "IntegraMédica 100%":          "https://tinyurl.com/bupa-im100",
+    "Plan Adulto Mayor 70%":       "https://tinyurl.com/bupa-am70",
+    "Bupa Complementa":            "https://tinyurl.com/bupa-complementa",
+    "PYME Digital":                "https://tinyurl.com/bupa-pyme",
 }
 
 # ══════════════════════════════════════════════════════════════════
