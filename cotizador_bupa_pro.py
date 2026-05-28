@@ -1230,52 +1230,54 @@ with t4:
                 },
             }
 
-            def detectar_familia(seleccionados):
-                """Retorna (familia_key, claves_en_familia, claves_fuera) o None si no hay familia."""
+            def detectar_familias(seleccionados):
+                """Detecta TODAS las familias presentes y retorna grupos."""
+                usados = set()
+                grupos = []  # lista de (familia_key, [planes])
+                solos  = []
                 for fk, fdata in FAMILIAS.items():
-                    en_familia = [pk for pk in seleccionados if pk in fdata["claves"]]
-                    fuera = [pk for pk in seleccionados if pk not in fdata["claves"]]
-                    if len(en_familia) >= 2:
-                        return fk, en_familia, fuera
-                return None, [], list(seleccionados)
+                    en_fam = [pk for pk in seleccionados if pk in fdata["claves"] and pk not in usados]
+                    if len(en_fam) >= 2:
+                        grupos.append((fk, en_fam))
+                        usados.update(en_fam)
+                for pk in seleccionados:
+                    if pk not in usados:
+                        solos.append(pk)
+                return grupos, solos
 
-            familia_key, planes_familia, planes_solos = detectar_familia(planes_seleccionados)
+            grupos_familia, planes_solos = detectar_familias(planes_seleccionados)
 
             bloques = ""
+            num_counter = 0
 
-            # ── Bloque agrupado para planes de la misma familia ─────────
-            if familia_key:
+            # ── Bloque agrupado por cada familia detectada ──────────────
+            for familia_key, planes_familia in grupos_familia:
                 fdata = FAMILIAS[familia_key]
                 bloques += "\n🏥 *FAMILIA: "+fdata["titulo"]+"*\n\n"
                 bloques += fdata["descripcion_comun"] + "\n\n"
-                bloques += "📊 *Diferencia entre variantes: cobertura (%) y tope base*\n"
+                bloques += "📊 *Diferencia entre variantes: cobertura (%) y precio*\n"
                 bloques += "━━━━━━━━━━━━━━━━━━━━━\n"
                 for pk in planes_familia:
+                    num_counter += 1
                     p = CATALOGO[pk]; r = precios[pk]
                     rec_s = " ⭐ RECOMENDADO" if pk == rec else ""
-                    cup_b = ("\n   🎁 Cupón: "+r["cupon"]+" ("+str(r["pct"])+"% dcto)") if r.get("pct",0)>0 else ""
-                    # Diferencias clave según familia
                     if familia_key == "BCT":
                         dif = "Hosp y amb: *"+p["hosp"]+"* · Tope: *"+p["tope_base"]+"*"
-                    elif familia_key == "BP":
-                        dif = "Hosp: *"+p["hosp"]+"* · Amb: *"+p["amb"]+"* · Tope: *"+p["tope_base"]+"*"
-                    elif familia_key == "MULTI":
-                        dif = "Hosp: *"+p["hosp"]+"* · Amb: *"+p["amb"]+"* · Tope: *"+p["tope_base"]+"*"
                     else:
-                        dif = "Hosp: *"+p["hosp"]+"* · Amb: *"+p["amb"]+"*"
+                        dif = "Hosp: *"+p["hosp"]+"* · Amb: *"+p["amb"]+"* · Tope: *"+p["tope_base"]+"*"
                     pdf_lnk = ("\n   📎 "+PDFS_PLANES[p["nombre"]]) if p["nombre"] in PDFS_PLANES else ""
+                    cup_b = ("\n   🎁 Cupón: "+r["cupon"]+" ("+str(r["pct"])+"% dcto)") if r.get("pct",0)>0 else ""
                     bloques += (
-                        "\n🔹 *"+p["emoji"]+" "+p["nombre"]+"*"+rec_s+"\n"
+                        "\n🔹 *"+str(num_counter)+". "+p["emoji"]+" "+p["nombre"]+"*"+rec_s+"\n"
                         "   "+dif+"\n"
                         "   💰 "+precio_wa(pk)+cup_b+"\n"
-                        "   Anual aprox.: "+clp(r["total"]*12,val_uf)+"\n"
-                        "   "+aseg_str(pk).strip()+pdf_lnk+"\n"
+                        +pdf_lnk+"\n"
                     )
                 bloques += "\n━━━━━━━━━━━━━━━━━━━━━\n"
 
-            # ── Bloques individuales para planes fuera de la familia ────
-            idx_offset = len(planes_familia) if familia_key else 0
-            for i, pk in enumerate(planes_solos, 1):
+            # ── Bloques individuales para planes fuera de familia ───────
+            for pk in planes_solos:
+                num_counter += 1
                 p = CATALOGO[pk]; r = precios[pk]; es_conv = pk in CONVENIOS
                 rec_s = "\n⭐ *RECOMENDADO*" if pk == rec else ""
                 conv_s = "\n🤝 _Convenio: sin DPS · cubre preexistencias_" if es_conv else ""
@@ -1283,10 +1285,9 @@ with t4:
                 cup_b = ("\n🎁 Cupón: "+r["cupon"]+" ("+str(r["pct"])+"% dcto)") if r.get("pct",0)>0 else ""
                 tr_b = (" · "+r.get("tramo","")) if es_conv else ""
                 pdf_lnk_s = ("\n   📎 "+PDFS_PLANES[p["nombre"]]) if p["nombre"] in PDFS_PLANES else ""
-                num = idx_offset + i
                 bloques += (
-                    "\n🔹 *OPCIÓN "+str(num)+" — "+p["nombre"]+"*"+tr_b+rec_s+conv_s+"\n\n"
-                    "💰 "+precio_wa(pk)+cup_b+"\n"
+                    "\n🔹 *"+str(num_counter)+". "+p["emoji"]+" "+p["nombre"]+"*"+tr_b+rec_s+conv_s+"\n\n"
+                    "   💰 "+precio_wa(pk)+cup_b+"\n"
                     +"\n".join("   ✅ "+pt for pt in pts[:7])+"\n"
                     "   📌 Tope: "+p["tope_base"]+" · Ded.: "+p["ded_amb"]+"\n"
                     "   📋 DPS: "+("No requerida" if not p["dps"] else "Requerida")+"\n"
