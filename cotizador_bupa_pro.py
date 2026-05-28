@@ -674,6 +674,9 @@ def rango(edad):
     else:            return "71-75"
 
 def get_precio(pk, edad, es_cont):
+    # Menores de 18 como titular usan tarifa dependiente
+    if es_cont and edad < 18:
+        return PLANES[pk]["dependiente"].get(rango(edad))
     col = "contratante" if es_cont else "dependiente"
     return PLANES[pk][col].get(rango(edad))
 
@@ -715,9 +718,14 @@ def calcular_convenio(pk, tramo_am, tramo_im, tramo_dental):
     return None
 
 def edad_valida(pk, edad):
-    mn,mx = EDAD_INGRESO.get(pk,(18,75))
-    if edad<mn or edad>mx: return False
-    if pk in PLANES: return PLANES[pk]["contratante"].get(rango(edad)) is not None
+    _,mx = EDAD_INGRESO.get(pk,(18,75))
+    if edad > mx: return False
+    if pk in PLANES:
+        # Solo BCT permiten menor de 18 como titular (paga el tutor)
+        if edad < 18 and pk not in ("BCT60","BCT70","BCT80"):
+            return False
+        col = "dependiente" if edad < 18 else "contratante"
+        return PLANES[pk][col].get(rango(edad)) is not None
     return True
 
 def es_compatible(pk, edad_c, prevision_base, f_sin_dps, f_preex, f_cat, f_libre,
