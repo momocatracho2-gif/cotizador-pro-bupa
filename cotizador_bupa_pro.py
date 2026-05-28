@@ -610,7 +610,7 @@ PLANES = {
 }
 
 AM_TARIFAS   = {"Solo Titular":0.84,"Titular + 1 beneficiario":1.55,"Titular + 2 beneficiarios":2.23,"Titular + 3 beneficiarios":2.92,"Titular + 4 beneficiarios":3.62}
-IM100_TARIFAS= {"Solo Titular":0.84,"Titular + 1 beneficiario":1.32,"Titular + 2 beneficiarios":1.90,"Titular + 3 beneficiarios":2.49,"Titular + 4 beneficiarios":3.09,"Titular + 5 beneficiarios":3.69}
+IM100_TARIFAS= {"Solo Titular":0.72,"Titular + 1 beneficiario":1.32,"Titular + 2 beneficiarios":1.90,"Titular + 3 beneficiarios":2.49,"Titular + 4 beneficiarios":3.09,"Titular + 5 beneficiarios":3.69}
 DENTAL_TARIFAS_INICIO  = {"Solo Titular":0.50,"Titular + 1 beneficiario":0.99,"Titular + 2 beneficiarios":1.47,"Titular + 3 beneficiarios":1.96,"Titular + 4 beneficiarios":2.44}
 DENTAL_TARIFAS_MENSUAL = {"Solo Titular":0.08,"Titular + 1 beneficiario":0.15,"Titular + 2 beneficiarios":0.22,"Titular + 3 beneficiarios":0.28,"Titular + 4 beneficiarios":0.35}
 
