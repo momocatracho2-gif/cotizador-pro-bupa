@@ -1125,7 +1125,8 @@ with t4:
         def precio_wa(pk):
             r=precios[pk]; pct=r.get("pct",0)
             if pct>0:
-                orig=sum(d["orig"] for d in r["det"] if d.get("orig"))
+                # Calcular precio original desde el total con descuento
+                orig = round(r["total"] / (1 - pct/100), 2)
                 return "~~UF "+f"{orig:.2f}"+"~~ → *UF "+f"{r['total']:.2f}"+"* (~"+clp(r["total"],val_uf)+"/mes)"
             return "*UF "+f"{r['total']:.2f}"+"* (~"+clp(r["total"],val_uf)+"/mes)"
 
