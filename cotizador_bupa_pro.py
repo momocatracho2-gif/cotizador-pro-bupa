@@ -662,7 +662,7 @@ CUPONES = {"BCT":("BCTALL20NEW",20),"BP":("BMPHYA20NEW",20),"BMS":("BMSBASE20JUL
 # FUNCIONES
 # ══════════════════════════════════════════════════════════════════
 def rango(edad):
-    if edad < 3:     return "0-2"
+    if edad <= 2:  return "0-2"
     elif edad <= 17: return "3-17"
     elif edad <= 25: return "18-25"
     elif edad <= 35: return "26-35"
@@ -1125,9 +1125,8 @@ with t4:
         def precio_wa(pk):
             r=precios[pk]; pct=r.get("pct",0)
             if pct>0:
-                # Calcular precio original desde el total con descuento
                 orig = round(r["total"] / (1 - pct/100), 2)
-                return "~~UF "+f"{orig:.2f}"+"~~ → *UF "+f"{r['total']:.2f}"+"* (~"+clp(r["total"],val_uf)+"/mes)"
+                return "~~UF "+f"{orig:.2f}~~"+" → *UF "+f"{r['total']:.2f}"+"* (~"+clp(r["total"],val_uf)+"/mes)"
             return "*UF "+f"{r['total']:.2f}"+"* (~"+clp(r["total"],val_uf)+"/mes)"
 
         def aseg_str(pk):
