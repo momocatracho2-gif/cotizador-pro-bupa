@@ -610,7 +610,7 @@ PLANES = {
 }
 
 AM_TARIFAS   = {"Solo Titular":0.84,"Titular + 1 beneficiario":1.55,"Titular + 2 beneficiarios":2.23,"Titular + 3 beneficiarios":2.92,"Titular + 4 beneficiarios":3.62}
-IM100_TARIFAS= {"Solo Titular":0.72,"Titular + 1 beneficiario":1.32,"Titular + 2 beneficiarios":1.90,"Titular + 3 beneficiarios":2.49,"Titular + 4 beneficiarios":3.09,"Titular + 5 beneficiarios":3.69}
+IM100_TARIFAS= {"Solo Titular":0.84,"Titular + 1 beneficiario":1.32,"Titular + 2 beneficiarios":1.90,"Titular + 3 beneficiarios":2.49,"Titular + 4 beneficiarios":3.09,"Titular + 5 beneficiarios":3.69}
 DENTAL_TARIFAS_INICIO  = {"Solo Titular":0.50,"Titular + 1 beneficiario":0.99,"Titular + 2 beneficiarios":1.47,"Titular + 3 beneficiarios":1.96,"Titular + 4 beneficiarios":2.44}
 DENTAL_TARIFAS_MENSUAL = {"Solo Titular":0.08,"Titular + 1 beneficiario":0.15,"Titular + 2 beneficiarios":0.22,"Titular + 3 beneficiarios":0.28,"Titular + 4 beneficiarios":0.35}
 
@@ -740,6 +740,7 @@ def es_compatible(pk, edad_c, prevision_base, f_sin_dps, f_preex, f_cat, f_libre
     if f_salud_mental and not p["f_salud_mental"]: return False
     if f_quirurgico   and not p["f_quirurgico"]:   return False
     if pk=="AM70"   and not (f_adulto_mayor or f_preex or f_sin_dps): return False
+    if pk=="AM70"   and edad_c < 60: return False
     if pk=="IM100"  and not (f_im100 or f_preex or f_sin_dps):        return False
     if pk=="DENTAL" and not (f_dental or f_sin_dps):                  return False
     return True
@@ -864,7 +865,10 @@ f_sin_dps = f_preex
 ningun_filtro = not any([f_cat,f_libre,f_maternidad,f_salud_mental,f_quirurgico,
                           f_sin_dps,f_preex,f_adulto_mayor,f_im100,f_dental,f_pyme])
 if ningun_filtro:
-    planes_compatibles = [pk for pk in PLANES if edad_valida(pk,edad_c) and prevision_base in PLANES[pk]["prevision"]]
+    planes_compatibles = [pk for pk in PLANES
+        if edad_valida(pk,edad_c)
+        and prevision_base in PLANES[pk]["prevision"]
+        and not (pk=="AM70" and edad_c < 60)]
 else:
     planes_compatibles = [pk for pk in CATALOGO if es_compatible(pk,edad_c,prevision_base,f_sin_dps,f_preex,
         f_cat,f_libre,f_maternidad,f_salud_mental,f_quirurgico,f_adulto_mayor,f_im100,f_dental)]
