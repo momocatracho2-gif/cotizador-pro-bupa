@@ -691,12 +691,12 @@ def cupon_para_plan(pk, usar_cupon):
     if pk == "MULTIPRO":                return CUPONES["BPRO"]
     return ("", 0)
 
-def calcular(pk, edad_c, cargas, val_uf, usar_cupon):
+def calcular(pk, edad_c, cargas, val_uf, usar_cupon, meses_c=None):
     pc = get_precio(pk, edad_c, True)
     if pc is None: return None
     cod, pct = cupon_para_plan(pk, usar_cupon)
     pc_d = pc*(1-pct/100); total = pc_d
-    det = [{"quien":"Contratante","edad":edad_c,"meses":None,"orig":pc,"final":pc_d,"cupon":cod,"pct":pct}]
+    det = [{"quien":"Contratante","edad":edad_c,"meses":meses_c,"orig":pc,"final":pc_d,"cupon":cod,"pct":pct}]
     for c in cargas:
         pcc = get_precio(pk, c["edad"], False)
         if pcc:
@@ -768,7 +768,17 @@ _ctx = st.sidebar if not es_movil else st.expander("⚙️ Filtros y datos del c
 with _ctx:
     st.markdown("## 👤 Datos del Cliente")
     nombre    = st.text_input("Nombre completo", placeholder="Ej: Franco Lupi")
-    edad_c    = st.number_input("Edad contratante", 18, 84, 35)
+    edad_c    = st.number_input("Edad asegurado (años)", 0, 84, 35)
+    if edad_c == 0:
+        meses_c = st.selectbox(
+            "Meses de vida — Asegurado principal",
+            options=list(range(1, 12)),
+            format_func=lambda m: f"{m} mes{'es' if m>1 else ''}",
+            key="meses_contratante"
+        )
+    else:
+        meses_c = None
+    edad_label_c = (f"{meses_c} mes{'es' if meses_c and meses_c>1 else ''}" if edad_c == 0 and meses_c else f"{edad_c} años")
     prevision = st.selectbox("Previsión", ["FONASA B,C,D","ISAPRE"])
     prevision_base = "ISAPRE" if prevision=="ISAPRE" else "FONASA"
 
@@ -854,7 +864,7 @@ else:
 precios = {}
 for pk in planes_compatibles:
     if pk in PLANES:
-        r = calcular(pk, edad_c, cargas, val_uf, usar_cupon)
+        r = calcular(pk, edad_c, cargas, val_uf, usar_cupon, meses_c)
         if r: precios[pk] = r
     else:
         r = calcular_convenio(pk, tramo_am, tramo_im, tramo_dental)
@@ -897,7 +907,7 @@ st.markdown(
 
 # ── KPI Cards Premium ─────────────────────────────────────────────
 kpi_items = [
-    ("#005EB8", "👤", "Cliente", (nombre or "(sin nombre)") + " · " + str(edad_c) + " años"),
+    ("#005EB8", "👤", "Cliente", (nombre or "(sin nombre)") + " · " + edad_label_c),
     ("#0082D4", "📋", "Previsión", prevision),
     ("#00AEEF", "💱", "Valor UF", uf_fmt),
     ("#00C4A1", "🔍", "Opciones", str(len(planes_compatibles)) + " planes disponibles"),
@@ -1176,7 +1186,7 @@ with t4:
                 "Te comparto tu cotización personalizada de *Bupa Seguros* 🏥",
                 "📅 Fecha: "+hoy,"",
                 "━━━━━━━━━━━━━━━━━━━━━",
-                "👤 *Cliente:* "+(nombre or nc)+" · "+str(edad_c)+" años",
+                "👤 *Cliente:* "+(nombre or nc)+" · "+edad_label_c,
                 "📋 *Previsión:* "+prevision,
                 "🔹 *Plan:* "+p["nombre"]+cup_str(plan_wa),"",
                 "👥 *Asegurados:*"+aseg_str(plan_wa),"",
@@ -1321,7 +1331,7 @@ with t4:
                 "Te comparto tus opciones de *Bupa Seguros* 🏥",
                 "📅 Fecha: "+hoy,"",
                 "━━━━━━━━━━━━━━━━━━━━━",
-                "👤 *Cliente:* "+(nombre or nc)+" · "+str(edad_c)+" años",
+                "👤 *Cliente:* "+(nombre or nc)+" · "+edad_label_c,
                 "📋 *Previsión:* "+prevision,
                 "━━━━━━━━━━━━━━━━━━━━━",
                 bloques, rec_t,
