@@ -696,14 +696,14 @@ def calcular(pk, edad_c, cargas, val_uf, usar_cupon):
     if pc is None: return None
     cod, pct = cupon_para_plan(pk, usar_cupon)
     pc_d = pc*(1-pct/100); total = pc_d
-    det = [{"quien":"Contratante","edad":edad_c,"orig":pc,"final":pc_d,"cupon":cod,"pct":pct}]
+    det = [{"quien":"Contratante","edad":edad_c,"meses":None,"orig":pc,"final":pc_d,"cupon":cod,"pct":pct}]
     for c in cargas:
         pcc = get_precio(pk, c["edad"], False)
         if pcc:
             pcc_d = pcc*(1-pct/100); total += pcc_d
-            det.append({"quien":c["nombre"],"edad":c["edad"],"orig":pcc,"final":pcc_d,"cupon":cod,"pct":pct})
+            det.append({"quien":c["nombre"],"edad":c["edad"],"meses":c.get("meses"),"orig":pcc,"final":pcc_d,"cupon":cod,"pct":pct})
         else:
-            det.append({"quien":c["nombre"],"edad":c["edad"],"orig":None,"final":None,"cupon":"","pct":0})
+            det.append({"quien":c["nombre"],"edad":c["edad"],"meses":c.get("meses"),"orig":None,"final":None,"cupon":"","pct":0})
     return {"total":total,"det":det,"cupon":cod,"pct":pct}
 
 def calcular_convenio(pk, tramo_am, tramo_im, tramo_dental):
@@ -779,8 +779,20 @@ with _ctx:
     for i in range(int(n_cargas)):
         a,b = st.columns([2,1])
         nc = a.text_input(f"Carga {i+1}", key=f"nc{i}", placeholder="Parentesco")
-        ec = b.number_input("Edad", 0, 75, 5, key=f"ec{i}")
-        cargas.append({"nombre": nc or f"Carga {i+1}", "edad": ec})
+        ec = b.number_input("Edad (años)", 0, 75, 1, key=f"ec{i}")
+        if ec == 0:
+            meses = st.selectbox(
+                f"Meses de vida — Carga {i+1}",
+                options=list(range(1, 12)),
+                format_func=lambda m: f"{m} mes{'es' if m>1 else ''}",
+                key=f"meses{i}"
+            )
+            nombre_display = nc or f"Carga {i+1}"
+            cargas.append({"nombre": nombre_display, "edad": 0, "meses": meses,
+                          "label": f"{nombre_display} ({meses} mes{'es' if meses>1 else ''})"})
+        else:
+            cargas.append({"nombre": nc or f"Carga {i+1}", "edad": ec, "meses": None,
+                          "label": f"{nc or f'Carga {i+1}'} ({ec} años)"})
 
     st.markdown("---")
     st.markdown("### ⚙️ Config")
@@ -1129,16 +1141,24 @@ with t4:
                 return "~~UF "+f"{orig:.2f}~~"+" → *UF "+f"{r['total']:.2f}"+"* (~"+clp(r["total"],val_uf)+"/mes)"
             return "*UF "+f"{r['total']:.2f}"+"* (~"+clp(r["total"],val_uf)+"/mes)"
 
+        def edad_label(d):
+            """Retorna etiqueta de edad legible, con meses si corresponde."""
+            if d.get("edad") == 0 and d.get("meses"):
+                m = d["meses"]
+                return f"{m} mes{'es' if m>1 else ''}"
+            return f"{d.get('edad',0)} años"
+
         def aseg_str(pk):
             r=precios[pk]; es_conv=pk in CONVENIOS
             if es_conv: return "\n   • "+r.get("tramo","")+" : UF "+f"{r['total']:.2f}"+" ("+clp(r["total"],val_uf)+")"
             s=""
             for d in r["det"]:
                 if d.get("final"):
+                    lbl = edad_label(d)
                     if d.get("pct",0)>0 and d.get("orig"):
-                        s+="\n   • "+d["quien"]+" ("+str(d["edad"])+" años): ~~UF "+f"{d['orig']:.2f}"+"~~ → UF "+f"{d['final']:.2f}"+" ("+clp(d["final"],val_uf)+")"
+                        s+="\n   • "+d["quien"]+" ("+lbl+"): ~~UF "+f"{d['orig']:.2f}"+"~~ → UF "+f"{d['final']:.2f}"+" ("+clp(d["final"],val_uf)+")"
                     else:
-                        s+="\n   • "+d["quien"]+" ("+str(d["edad"])+" años): UF "+f"{d['final']:.2f}"+" ("+clp(d["final"],val_uf)+")"
+                        s+="\n   • "+d["quien"]+" ("+lbl+"): UF "+f"{d['final']:.2f}"+" ("+clp(d["final"],val_uf)+")"
             return s
 
         def cup_str(pk):
