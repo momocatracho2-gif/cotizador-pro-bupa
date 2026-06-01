@@ -1114,7 +1114,7 @@ with t3:
                 "Valor":[p["tope_base"],p["tope_cat"],p["ded_amb"],p["ded_hosp"],p["muerte"]]}),hide_index=True,use_container_width=True)
             st.markdown("#### 🏥 Red de Prestadores"); st.info(p["red"])
             if p["f_libre"]:
-                st.markdown("| Red | Lab. | Imag. | Día cama | Pabellón |\n|-----|------|-------|----------|----------| \n| IntegraMédica | +12% | +12% | - | - |\n| Clínica Bupa Stgo | +10% | +10% | +10% | +10% |\n| Clínica Bupa Reñaca | +10% | +10% | +10% | +10% |")
+                st.markdown("| Red | Lab. | Imag. | Día cama | Pabellón |\n|-----|------|-------|----------|----------| \n| IntegraMédica | +12% | +12% | - | - |\n| Clínica Bupa Stgo | +10% | +10% | +10% | +10% |\n| Clínica Bupa Reñaca | +10% | +10% | +10% | +10% |\n| Clínica Bupa Antofagasta | +10% | +10% | +10% | +10% |")
         st.markdown("---")
         ca,cb=st.columns(2); ca.success("✅ Le conviene a: "+p["para_quien"]); cb.warning("⚠️ No ideal para: "+p["no_para"])
         st.caption("⏳ Carencias: "+p["carencias"])
@@ -1356,8 +1356,11 @@ with t4:
         st.code(msg, language=None)
 
         if telefono_cliente:
-            wa_link="https://web.whatsapp.com/send?phone=56"+telefono_cliente+"&text="+quote(msg,safe="")
-            st.link_button("📲 Abrir WhatsApp Web", wa_link)
+            if es_movil:
+                wa_link="https://wa.me/56"+telefono_cliente+"?text="+quote(msg,safe="")
+            else:
+                wa_link="https://web.whatsapp.com/send?phone=56"+telefono_cliente+"&text="+quote(msg,safe="")
+            st.link_button("📲 Abrir WhatsApp", wa_link)
         else:
             st.warning("⚠️ Ingresa el número del cliente para abrir WhatsApp.")
 
