@@ -1221,7 +1221,7 @@ with t4:
                 "🤝 ¿Te interesa avanzar?",
                 "📱 "+ASESOR_NOMBRE,
                 "📞 "+ASESOR_TELEFONO,"",
-                "_Cotización tarifario Bupa Seguros mayo 2026. UF "+uf_fmt+". El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._",
+                "_Cotización tarifario Bupa Seguros "+uf_fecha+". UF "+uf_fmt+". El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._",
             ])
         else:
             # ── Definición de familias de planes similares ─────────────
@@ -1396,7 +1396,7 @@ st.markdown(
     '</div></div>'
     '<div style="color:#7eb8e8;font-size:11px;text-align:right;line-height:1.6;">'
     'El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A.<br>'
-    'Tarifario mayo 2026 · UF ' + uf_fmt +
+    'Tarifario ' + uf_fecha + ' · UF ' + uf_fmt +
     '</div></div>',
     unsafe_allow_html=True
 )
