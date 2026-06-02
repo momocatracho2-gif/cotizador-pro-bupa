@@ -1129,7 +1129,7 @@ with t4:
         with wa1:
             telefono_cliente=st.text_input("WhatsApp cliente (solo 9 dígitos)",placeholder="912345678")
         with wa2:
-            modo = st.radio("Modo", ["Comparativa (todos los seleccionados)","Un solo plan"], index=1)
+            modo = st.radio("Modo", ["Comparativa (todos los seleccionados)","Un solo plan"])
 
         hoy=date.today().strftime("%d/%m/%Y"); nc=nombre or "Estimado/a"
 
