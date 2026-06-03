@@ -9,8 +9,14 @@
 import streamlit as st
 import pandas as pd
 import os, io, zipfile, json, hashlib
-from datetime import date
+from datetime import date, datetime, timedelta
 from urllib.parse import quote
+try:
+    import psycopg2
+    import psycopg2.extras
+    _PG_OK = True
+except ImportError:
+    _PG_OK = False
 try:
     import requests as _requests
     _REQUESTS_OK = True
@@ -160,9 +166,97 @@ except Exception:
 
 ASESORES_FILE = os.path.join(os.path.dirname(__file__), "asesores.json")
 
+# ── PostgreSQL helpers ────────────────────────────────────────────
+def get_pg_conn():
+    """Retorna conexión PostgreSQL desde variable de entorno DATABASE_URL."""
+    if not _PG_OK:
+        return None
+    db_url = os.environ.get("DATABASE_URL") or os.environ.get("DATABASE_PUBLIC_URL")
+    if not db_url:
+        return None
+    try:
+        conn = psycopg2.connect(db_url, sslmode="require")
+        return conn
+    except Exception:
+        return None
+
+def init_db():
+    """Crea la tabla asesores si no existe."""
+    conn = get_pg_conn()
+    if not conn:
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS asesores (
+                    usuario    TEXT PRIMARY KEY,
+                    password   TEXT NOT NULL,
+                    nombre     TEXT NOT NULL,
+                    telefono   TEXT DEFAULT '',
+                    ciudad     TEXT DEFAULT 'Santiago',
+                    email      TEXT DEFAULT '',
+                    activo     BOOLEAN DEFAULT TRUE,
+                    vence      DATE,
+                    plan       TEXT DEFAULT '1mes',
+                    creado     TIMESTAMP DEFAULT NOW()
+                )
+            """)
+            # Migrar desde JSON si la tabla está vacía
+            cur.execute("SELECT COUNT(*) FROM asesores")
+            count = cur.fetchone()[0]
+            if count == 0 and os.path.exists(ASESORES_FILE):
+                try:
+                    with open(ASESORES_FILE, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    for u, d in data.items():
+                        cur.execute("""
+                            INSERT INTO asesores (usuario,password,nombre,telefono,ciudad,email,activo)
+                            VALUES (%s,%s,%s,%s,%s,%s,%s)
+                            ON CONFLICT (usuario) DO NOTHING
+                        """, (u, d.get("password",""), d.get("nombre",u),
+                              d.get("telefono",""), d.get("ciudad","Santiago"),
+                              d.get("email",""), d.get("activo",True)))
+                except Exception:
+                    pass
+        conn.commit()
+    except Exception:
+        pass
+    finally:
+        conn.close()
+
 def load_asesores():
-    """Carga asesores desde asesores.json (Railway) o st.secrets (Streamlit Cloud) como fallback."""
-    # 1. Intentar desde asesores.json (Railway)
+    """Carga asesores desde PostgreSQL → JSON → Secrets → hardcoded."""
+    # 1. PostgreSQL (Railway)
+    conn = get_pg_conn()
+    if conn:
+        try:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("SELECT * FROM asesores ORDER BY creado")
+                rows = cur.fetchall()
+            conn.close()
+            if rows:
+                result = {}
+                hoy = date.today()
+                for r in rows:
+                    vence = r.get("vence")
+                    activo = r.get("activo", True)
+                    # Desactivar automáticamente si venció
+                    if vence and vence < hoy:
+                        activo = False
+                    result[r["usuario"]] = {
+                        "password":  r["password"],
+                        "nombre":    r["nombre"],
+                        "telefono":  r.get("telefono",""),
+                        "ciudad":    r.get("ciudad","Santiago"),
+                        "email":     r.get("email",""),
+                        "activo":    activo,
+                        "vence":     vence.strftime("%Y-%m-%d") if vence else None,
+                        "plan":      r.get("plan","1mes"),
+                    }
+                return result
+        except Exception:
+            pass
+    # 2. JSON local
     if os.path.exists(ASESORES_FILE):
         try:
             with open(ASESORES_FILE, "r", encoding="utf-8") as f:
@@ -175,45 +269,89 @@ def load_asesores():
                     "ciudad":   d.get("ciudad","Santiago"),
                     "email":    d.get("email",""),
                     "activo":   d.get("activo", True),
+                    "vence":    d.get("vence", None),
+                    "plan":     d.get("plan","1mes"),
                 } for u, d in data.items()}
         except Exception:
             pass
-    # 2. Fallback: Streamlit Secrets (Streamlit Cloud)
-    try:
-        raw = st.secrets.get("asesores", {})
-        asesores = {}
-        for usuario, datos in raw.items():
-            asesores[usuario] = {
-                "password":  datos.get("password", ""),
-                "nombre":    datos.get("nombre", usuario),
-                "telefono":  datos.get("telefono", ""),
-                "ciudad":    datos.get("ciudad", "Santiago"),
-                "email":     datos.get("email", ""),
-                "activo":    datos.get("activo", True),
-            }
-        if asesores:
-            return asesores
-    except Exception:
-        pass
     # 3. Fallback hardcodeado
     return {
         "romulo": {
-            "password": "seguros2026",
-            "nombre":   "Rómulo Lupi",
-            "telefono": "+569 90790892",
-            "ciudad":   "Santiago",
-            "email":    "romulo.lupi@bupa.cl",
-            "activo":   True,
+            "password": "seguros2026", "nombre": "Rómulo Lupi",
+            "telefono": "+569 90790892", "ciudad": "Santiago",
+            "email": "romulo.lupi@bupa.cl", "activo": True,
+            "vence": None, "plan": "1mes",
         },
         "demo": {
-            "password": "demo123",
-            "nombre":   "Asesor Demo Bupa",
-            "telefono": "+569 00000000",
-            "ciudad":   "Santiago",
-            "email":    "demo@bupa.cl",
-            "activo":   True,
+            "password": "demo123", "nombre": "Asesor Demo Bupa",
+            "telefono": "+569 00000000", "ciudad": "Santiago",
+            "email": "demo@bupa.cl", "activo": True,
+            "vence": None, "plan": "1mes",
         },
     }
+
+def save_asesor_db(usuario, datos):
+    """Guarda o actualiza un asesor en PostgreSQL."""
+    conn = get_pg_conn()
+    if not conn:
+        return False
+    try:
+        vence = datos.get("vence") or None
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO asesores (usuario,password,nombre,telefono,ciudad,email,activo,vence,plan)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                ON CONFLICT (usuario) DO UPDATE SET
+                    password=EXCLUDED.password, nombre=EXCLUDED.nombre,
+                    telefono=EXCLUDED.telefono, ciudad=EXCLUDED.ciudad,
+                    email=EXCLUDED.email, activo=EXCLUDED.activo,
+                    vence=EXCLUDED.vence, plan=EXCLUDED.plan
+            """, (usuario, datos["password"], datos["nombre"],
+                  datos.get("telefono",""), datos.get("ciudad","Santiago"),
+                  datos.get("email",""), datos.get("activo",True),
+                  vence, datos.get("plan","1mes")))
+        conn.commit()
+        return True
+    except Exception as e:
+        st.error(f"Error DB: {e}")
+        return False
+    finally:
+        conn.close()
+
+def delete_asesor_db(usuario):
+    """Elimina un asesor de PostgreSQL."""
+    conn = get_pg_conn()
+    if not conn:
+        return False
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM asesores WHERE usuario=%s", (usuario,))
+        conn.commit()
+        return True
+    except Exception:
+        return False
+    finally:
+        conn.close()
+
+def save_asesores(data):
+    """Guarda todos los asesores (compatibilidad con código existente)."""
+    conn = get_pg_conn()
+    if conn:
+        conn.close()
+        for usuario, datos in data.items():
+            save_asesor_db(usuario, datos)
+        st.session_state["secrets_pendientes"] = "__json_ok__"
+        return
+    # Fallback JSON
+    if os.path.exists(ASESORES_FILE):
+        try:
+            with open(ASESORES_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            st.session_state["secrets_pendientes"] = "__json_ok__"
+            return
+        except Exception as e:
+            st.error(f"Error guardando: {e}")
+    st.session_state["secrets_pendientes"] = "__json_ok__"
 
 def save_asesores(data):
     """Guarda en asesores.json si existe el archivo (Railway), si no genera TOML para Streamlit."""
@@ -237,6 +375,9 @@ def save_asesores(data):
         lines.append('email = "' + d.get("email","") + '"')
         lines.append("activo = " + ("true" if d.get("activo",True) else "false"))
     st.session_state["secrets_pendientes"] = "\n".join(lines)
+
+# ── Inicializar BD ───────────────────────────────────────────────
+init_db()
 
 # ══════════════════════════════════════════════════════════════════
 # LOGIN / ADMIN
@@ -276,6 +417,16 @@ if not st.session_state.login_ok:
             elif usuario in asesores:
                 a = asesores[usuario]
                 if a["password"] == clave and a.get("activo", True):
+                    # Verificar vigencia
+                    vence = a.get("vence")
+                    if vence:
+                        try:
+                            vence_dt = datetime.strptime(vence, "%Y-%m-%d").date()
+                            if vence_dt < date.today():
+                                st.error("⏰ Tu licencia venció el "+vence+". Contacta a Rómulo Lupi para renovar.")
+                                st.stop()
+                        except Exception:
+                            pass
                     st.session_state.login_ok = True
                     st.session_state.usuario  = usuario
                     st.session_state.es_admin = False
@@ -313,13 +464,26 @@ if st.session_state.es_admin:
     with tab_ver:
         st.markdown("### Asesores registrados")
         filas = []
+        hoy = date.today()
         for u, d in asesores.items():
+            vence = d.get("vence")
+            if vence:
+                try:
+                    vd = datetime.strptime(vence, "%Y-%m-%d").date()
+                    dias = (vd - hoy).days
+                    vence_str = vence + (" ⚠️ "+str(dias)+"d" if 0 <= dias <= 7 else (" 🔴 VENCIDO" if dias < 0 else ""))
+                except Exception:
+                    vence_str = vence
+            else:
+                vence_str = "Sin vencimiento"
             filas.append({
                 "Usuario":   u,
                 "Nombre":    d["nombre"],
                 "Teléfono":  d["telefono"],
                 "Ciudad":    d["ciudad"],
                 "Email":     d.get("email","—"),
+                "Plan":      d.get("plan","1mes"),
+                "Vence":     vence_str,
                 "Estado":    "Activo" if d.get("activo", True) else "Inactivo",
             })
         df_a = pd.DataFrame(filas)
@@ -335,6 +499,11 @@ if st.session_state.es_admin:
         nu_tel   = c2.text_input("Teléfono", placeholder="+569 9XXXXXXX")
         nu_ciu   = c1.text_input("Ciudad", placeholder="Santiago")
         nu_mail  = c2.text_input("Email Bupa", placeholder="ana.perez@bupa.cl")
+        st.markdown("#### 📅 Vigencia de licencia")
+        cp1, cp2 = st.columns(2)
+        nu_plan = cp1.selectbox("Plan", ["1mes","3meses","sin_vencimiento"],
+                               format_func=lambda x: {"1mes":"1 mes","3meses":"3 meses","sin_vencimiento":"Sin vencimiento"}[x])
+        nu_inicio = cp2.date_input("Fecha inicio licencia", value=date.today())
 
         if st.button("Crear asesor", type="primary"):
             if not all([nu_user, nu_pass, nu_nom, nu_tel]):
@@ -344,16 +513,24 @@ if st.session_state.es_admin:
             elif len(nu_pass) < 6:
                 st.error("La contraseña debe tener al menos 6 caracteres.")
             else:
-                asesores[nu_user] = {
-                    "password":  nu_pass,
-                    "nombre":    nu_nom,
-                    "telefono":  nu_tel,
-                    "ciudad":    nu_ciu or "Santiago",
-                    "email":     nu_mail,
-                    "activo":    True,
+                if nu_plan == "sin_vencimiento":
+                    vence_nueva = None
+                elif nu_plan == "3meses":
+                    vence_nueva = (nu_inicio + timedelta(days=90)).strftime("%Y-%m-%d")
+                else:
+                    vence_nueva = (nu_inicio + timedelta(days=30)).strftime("%Y-%m-%d")
+                nuevo = {
+                    "password": nu_pass, "nombre": nu_nom, "telefono": nu_tel,
+                    "ciudad": nu_ciu or "Santiago", "email": nu_mail,
+                    "activo": True, "vence": vence_nueva, "plan": nu_plan,
                 }
-                save_asesores(asesores)
-                st.success("Asesor preparado. Copia el bloque de abajo en Streamlit Secrets.")
+                if save_asesor_db(nu_user, nuevo):
+                    st.success(f"✅ Asesor '{nu_user}' creado. Vence: {vence_nueva or 'Sin vencimiento'}")
+                    st.rerun()
+                else:
+                    asesores[nu_user] = nuevo
+                    save_asesores(asesores)
+                    st.success(f"✅ Asesor '{nu_user}' creado.")
 
     with tab_editar:
         st.markdown("### Editar o desactivar asesor")
@@ -368,26 +545,57 @@ if st.session_state.es_admin:
             ed_mail = c2.text_input("Email",     value=d.get("email",""),     key="ed_mail_" + usuario_sel)
             ed_pass = c1.text_input("Nueva contraseña (dejar vacío = no cambiar)", key="ed_pass_" + usuario_sel)
             ed_act  = c2.checkbox("Cuenta activa", value=d.get("activo",True), key="ed_act_"  + usuario_sel)
+            st.markdown("#### 📅 Vigencia")
+            ep1, ep2, ep3 = st.columns(3)
+            planes_opts = ["1mes","3meses","sin_vencimiento"]
+            plan_actual = d.get("plan","1mes")
+            if plan_actual not in planes_opts: plan_actual = "1mes"
+            ed_plan = ep1.selectbox("Plan", planes_opts, index=planes_opts.index(plan_actual),
+                                   format_func=lambda x: {"1mes":"1 mes","3meses":"3 meses","sin_vencimiento":"Sin vencimiento"}[x],
+                                   key="ed_plan_"+usuario_sel)
+            vence_actual = d.get("vence")
+            try:
+                vence_dt_val = datetime.strptime(vence_actual, "%Y-%m-%d").date() if vence_actual else date.today()
+            except Exception:
+                vence_dt_val = date.today()
+            ed_vence_dt = ep2.date_input("Fecha inicio renovación", value=vence_dt_val, key="ed_vdt_"+usuario_sel)
+            if ep3.button("🗓 Calcular vencimiento", key="ed_calc_"+usuario_sel):
+                if ed_plan == "sin_vencimiento":
+                    st.session_state["nueva_vence_"+usuario_sel] = None
+                elif ed_plan == "3meses":
+                    st.session_state["nueva_vence_"+usuario_sel] = (ed_vence_dt + timedelta(days=90)).strftime("%Y-%m-%d")
+                else:
+                    st.session_state["nueva_vence_"+usuario_sel] = (ed_vence_dt + timedelta(days=30)).strftime("%Y-%m-%d")
+            nueva_vence = st.session_state.get("nueva_vence_"+usuario_sel, vence_actual)
+            st.info("📅 Vence: **"+str(nueva_vence)+"**" if nueva_vence else "📅 Sin vencimiento")
 
             col_g, col_e = st.columns(2)
-            if col_g.button("Guardar cambios", type="primary"):
-                asesores[usuario_sel]["nombre"]   = ed_nom
-                asesores[usuario_sel]["telefono"] = ed_tel
-                asesores[usuario_sel]["ciudad"]   = ed_ciu
-                asesores[usuario_sel]["email"]    = ed_mail
-                asesores[usuario_sel]["activo"]   = ed_act
-                if ed_pass:
-                    asesores[usuario_sel]["password"] = ed_pass
-                save_asesores(asesores)
-                st.success("Cambios listos. Copia el bloque TOML de abajo en Streamlit Secrets y haz Reboot.")
+            if col_g.button("Guardar cambios", type="primary", key="ed_save_"+usuario_sel):
+                datos_upd = {
+                    "password":  ed_pass if ed_pass else d["password"],
+                    "nombre": ed_nom, "telefono": ed_tel,
+                    "ciudad": ed_ciu, "email": ed_mail,
+                    "activo": ed_act, "vence": nueva_vence, "plan": ed_plan,
+                }
+                if save_asesor_db(usuario_sel, datos_upd):
+                    st.success("✅ Cambios guardados en BD.")
+                    st.rerun()
+                else:
+                    asesores[usuario_sel].update(datos_upd)
+                    save_asesores(asesores)
+                    st.success("✅ Cambios guardados.")
 
-            if col_e.button("Eliminar asesor", type="secondary"):
+            if col_e.button("Eliminar asesor", type="secondary", key="ed_del_"+usuario_sel):
                 if usuario_sel == "romulo":
                     st.error("No puedes eliminar al asesor principal.")
                 else:
-                    del asesores[usuario_sel]
-                    save_asesores(asesores)
-                    st.warning("Asesor eliminado. Copia el bloque TOML de abajo en Streamlit Secrets y haz Reboot.")
+                    if delete_asesor_db(usuario_sel):
+                        st.warning(f"✅ Asesor '{usuario_sel}' eliminado.")
+                        st.rerun()
+                    else:
+                        del asesores[usuario_sel]
+                        save_asesores(asesores)
+                        st.warning("Asesor eliminado.")
 
             # Mostrar resultado según entorno
             if st.session_state.get("secrets_pendientes"):
