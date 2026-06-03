@@ -658,7 +658,7 @@ PDFS_PLANES = {
     "Bupa MultiSalud Pro":         "https://tinyurl.com/bupa-multipro",
     "Mi Dental IntegraMédica 68%": "https://tinyurl.com/bupa-dental",
     "IntegraMédica 100%":          "https://tinyurl.com/bupa-im100",
-    "Plan Adulto Mayor 70%":       "https://tinyurl.com/bupa-am70",
+    "Plan Adulto Mayor 70%":       "https://tinyurl.com/bupa-adultomayor",
     "Bupa Complementa":            "https://tinyurl.com/bupa-complementa",
     "PYME Digital":                "https://tinyurl.com/bupa-pyme",
 }
