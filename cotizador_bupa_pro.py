@@ -1350,7 +1350,7 @@ with t4:
                 "🤝 Conversemos y te ayudo a elegir la mejor opción.",
                 "📱 "+ASESOR_NOMBRE,
                 "📞 "+ASESOR_TELEFONO,"",
-                "_Cotización tarifario Bupa Seguros mayo 2026. UF "+uf_fmt+". El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._",
+                "_Cotización tarifario Bupa Seguros. UF "+uf_fmt+" del día "+uf_fecha+". El riesgo es cubierto por Bupa Compañía de Seguros de Vida S.A._",
             ])
 
         st.code(msg, language=None)
