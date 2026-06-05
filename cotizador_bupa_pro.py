@@ -35,7 +35,7 @@ st.set_page_config(
 # ══════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=3600)
 def get_uf_hoy():
-    """Obtiene UF desde SII (igual que portal Bupa) — último valor publicado."""
+    """Obtiene UF desde SII — último valor publicado (igual que portal Bupa)."""
     if not _REQUESTS_OK:
         return None, None
     try:
@@ -45,32 +45,28 @@ def get_uf_hoy():
         url = f"https://www.sii.cl/valores_y_fechas/uf/uf{hoy.year}.htm"
         r = _requests.get(url, timeout=8, headers={"User-Agent": "Mozilla/5.0"})
         r.encoding = "latin-1"
-        # Buscar todos los valores de la tabla: número con coma decimal
-        valores = re.findall(r'<td[^>]*>\s*([\d]{2,3}[\.,]\d{3}[\.,]\d{2})\s*</td>', r.text)
-        # Buscar días asociados
-        dias = re.findall(r'<td[^>]*>\s*(\d{1,2})\s*</td>', r.text)
+        html = r.text
+        # Buscar pares (día, valor) en la tabla del mes actual
+        # El SII estructura la tabla con <td>día</td><td>valor</td>
+        pares = re.findall(r'<td[^>]*>\s*(\d{1,2})\s*</td>\s*<td[^>]*>\s*([\d]+[,.][\d]+[,.][\d]+)\s*</td>', html)
         mes_actual = hoy.month
-        ultimo_valor = None
         ultimo_dia = None
-        for i, v in enumerate(valores):
+        ultimo_valor = None
+        for dia_str, val_str in pares:
             try:
-                num = float(v.replace(".", "").replace(",", "."))
+                num = float(val_str.replace(".", "").replace(",", "."))
                 if 35000 < num < 50000:
+                    ultimo_dia = int(dia_str)
                     ultimo_valor = num
-                    # intentar asociar día
-                    if i < len(dias):
-                        ultimo_dia = int(dias[i])
             except Exception:
                 pass
         if ultimo_valor and ultimo_dia:
             fecha_str = f"{hoy.year}-{mes_actual:02d}-{ultimo_dia:02d}"
             return ultimo_valor, fecha_str
-        # Fallback a mindicador.cl
+        # Fallback mindicador.cl
         r2 = _requests.get("https://mindicador.cl/api/uf", timeout=5)
         data = r2.json()
-        valor = float(data["serie"][0]["valor"])
-        fecha = data["serie"][0]["fecha"][:10]
-        return valor, fecha
+        return float(data["serie"][0]["valor"]), data["serie"][0]["fecha"][:10]
     except Exception:
         try:
             r2 = _requests.get("https://mindicador.cl/api/uf", timeout=5)
