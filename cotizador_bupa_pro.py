@@ -35,17 +35,49 @@ st.set_page_config(
 # ══════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=3600)
 def get_uf_hoy():
-    """Obtiene UF del día desde mindicador.cl con fallback a valor manual."""
+    """Obtiene UF desde SII (igual que portal Bupa) — último valor publicado."""
     if not _REQUESTS_OK:
         return None, None
     try:
-        r = _requests.get("https://mindicador.cl/api/uf", timeout=5)
-        data = r.json()
+        from datetime import date
+        import re
+        hoy = date.today()
+        url = f"https://www.sii.cl/valores_y_fechas/uf/uf{hoy.year}.htm"
+        r = _requests.get(url, timeout=8, headers={"User-Agent": "Mozilla/5.0"})
+        r.encoding = "latin-1"
+        # Buscar todos los valores de la tabla: número con coma decimal
+        valores = re.findall(r'<td[^>]*>\s*([\d]{2,3}[\.,]\d{3}[\.,]\d{2})\s*</td>', r.text)
+        # Buscar días asociados
+        dias = re.findall(r'<td[^>]*>\s*(\d{1,2})\s*</td>', r.text)
+        mes_actual = hoy.month
+        ultimo_valor = None
+        ultimo_dia = None
+        for i, v in enumerate(valores):
+            try:
+                num = float(v.replace(".", "").replace(",", "."))
+                if 35000 < num < 50000:
+                    ultimo_valor = num
+                    # intentar asociar día
+                    if i < len(dias):
+                        ultimo_dia = int(dias[i])
+            except Exception:
+                pass
+        if ultimo_valor and ultimo_dia:
+            fecha_str = f"{hoy.year}-{mes_actual:02d}-{ultimo_dia:02d}"
+            return ultimo_valor, fecha_str
+        # Fallback a mindicador.cl
+        r2 = _requests.get("https://mindicador.cl/api/uf", timeout=5)
+        data = r2.json()
         valor = float(data["serie"][0]["valor"])
         fecha = data["serie"][0]["fecha"][:10]
         return valor, fecha
     except Exception:
-        return None, None
+        try:
+            r2 = _requests.get("https://mindicador.cl/api/uf", timeout=5)
+            data = r2.json()
+            return float(data["serie"][0]["valor"]), data["serie"][0]["fecha"][:10]
+        except Exception:
+            return None, None
 
 # ══════════════════════════════════════════════════════════════════
 # LOGO BUPA — embebido base64
@@ -1035,7 +1067,7 @@ with _ctx:
     st.markdown("### ⚙️ Config")
     uf_api, uf_fecha = get_uf_hoy()
     if uf_api:
-        st.success("💱 UF " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (actualizada automáticamente)")
+        st.success("💱 UF SII " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (igual que portal Bupa)")
         uf_default = int(round(uf_api))
     else:
         st.warning("⚠️ No se pudo obtener la UF automática. Ingresa el valor manual.")
