@@ -1055,7 +1055,7 @@ with _ctx:
     st.markdown("### ⚙️ Config")
     uf_api, uf_fecha = get_uf_hoy()
     if uf_api:
-        st.success("💱 UF SII " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (igual que portal Bupa)")
+        st.success("💱 UF SII " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (actualizada automáticamente)")
         uf_default = int(round(uf_api))
     else:
         st.warning("⚠️ No se pudo obtener la UF automática. Ingresa el valor manual.")
