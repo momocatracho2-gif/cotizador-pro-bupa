@@ -35,42 +35,34 @@ st.set_page_config(
 # ══════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=3600)
 def get_uf_hoy():
-    """Obtiene UF desde SII — último valor publicado (igual que portal Bupa)."""
+    """Obtiene UF desde mindicador.cl — último valor publicado (igual que SII/portal Bupa)."""
     if not _REQUESTS_OK:
         return None, None
     try:
-        from datetime import date
-        import re
+        from datetime import date, timedelta
+        # Pedir los últimos 10 días y tomar el más reciente disponible
         hoy = date.today()
-        url = f"https://www.sii.cl/valores_y_fechas/uf/uf{hoy.year}.htm"
-        r = _requests.get(url, timeout=8, headers={"User-Agent": "Mozilla/5.0"})
-        r.encoding = "latin-1"
-        html = r.text
-        # Buscar pares (día, valor) en la tabla del mes actual
-        # El SII estructura la tabla con <td>día</td><td>valor</td>
-        pares = re.findall(r'<td[^>]*>\s*(\d{1,2})\s*</td>\s*<td[^>]*>\s*([\d]+[,.][\d]+[,.][\d]+)\s*</td>', html)
-        mes_actual = hoy.month
-        ultimo_dia = None
-        ultimo_valor = None
-        for dia_str, val_str in pares:
-            try:
-                num = float(val_str.replace(".", "").replace(",", "."))
-                if 35000 < num < 50000:
-                    ultimo_dia = int(dia_str)
-                    ultimo_valor = num
-            except Exception:
-                pass
-        if ultimo_valor and ultimo_dia:
-            fecha_str = f"{hoy.year}-{mes_actual:02d}-{ultimo_dia:02d}"
-            return ultimo_valor, fecha_str
-        # Fallback mindicador.cl
-        r2 = _requests.get("https://mindicador.cl/api/uf", timeout=5)
-        data = r2.json()
-        return float(data["serie"][0]["valor"]), data["serie"][0]["fecha"][:10]
+        url = f"https://mindicador.cl/api/uf/{hoy.strftime('%d-%m-%Y')}"
+        r = _requests.get(url, timeout=5)
+        data = r.json()
+        serie = data.get("serie", [])
+        if serie:
+            # Tomar el valor más reciente de la serie
+            return float(serie[0]["valor"]), serie[0]["fecha"][:10]
+        # Si no hay datos para hoy, buscar el último disponible
+        for delta in range(1, 10):
+            fecha = hoy - timedelta(days=delta)
+            url2 = f"https://mindicador.cl/api/uf/{fecha.strftime('%d-%m-%Y')}"
+            r2 = _requests.get(url2, timeout=5)
+            data2 = r2.json()
+            serie2 = data2.get("serie", [])
+            if serie2:
+                return float(serie2[0]["valor"]), serie2[0]["fecha"][:10]
+        return None, None
     except Exception:
         try:
-            r2 = _requests.get("https://mindicador.cl/api/uf", timeout=5)
-            data = r2.json()
+            r = _requests.get("https://mindicador.cl/api/uf", timeout=5)
+            data = r.json()
             return float(data["serie"][0]["valor"]), data["serie"][0]["fecha"][:10]
         except Exception:
             return None, None
