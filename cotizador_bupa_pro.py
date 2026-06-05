@@ -100,6 +100,10 @@ header[data-testid="stHeader"] {background: transparent !important;}
 [data-testid="stToolbar"] {display: none !important;}
 [data-testid="stDecoration"] {display: none !important;}
 [data-testid="stStatusWidget"] {display: none !important;}
+/* ── Botón colapso sidebar siempre visible ── */
+[data-testid="stSidebarCollapsedControl"] {display: flex !important; visibility: visible !important;}
+[data-testid="collapsedControl"] {display: flex !important; visibility: visible !important;}
+button[kind="header"] {display: flex !important; visibility: visible !important;}
 /* ── Botón colapso sidebar siempre visible en desktop ── */
 [data-testid="stSidebarCollapsedControl"] {display: flex !important; visibility: visible !important;}
 [data-testid="collapsedControl"] {display: flex !important; visibility: visible !important;}
@@ -177,8 +181,10 @@ def get_pg_conn():
     db_url = os.environ.get("DATABASE_URL") or os.environ.get("DATABASE_PUBLIC_URL")
     if not db_url:
         return None
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
     try:
-        conn = psycopg2.connect(db_url, sslmode="require")
+        conn = psycopg2.connect(db_url)
         return conn
     except Exception:
         return None
@@ -534,6 +540,7 @@ if st.session_state.es_admin:
                     asesores[nu_user] = nuevo
                     save_asesores(asesores)
                     st.success(f"✅ Asesor '{nu_user}' creado.")
+                    st.rerun()
 
     with tab_editar:
         st.markdown("### Editar o desactivar asesor")
@@ -1064,8 +1071,8 @@ with _ctx:
 
     st.markdown("---")
     if st.button("Cerrar sesión"):
-        st.session_state.login_ok = False
-        st.session_state.usuario  = ""
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
         st.rerun()
     st.caption("Sesión: " + st.session_state.usuario)
 f_sin_dps = f_preex
