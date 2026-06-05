@@ -100,6 +100,9 @@ header[data-testid="stHeader"] {background: transparent !important;}
 [data-testid="stToolbar"] {display: none !important;}
 [data-testid="stDecoration"] {display: none !important;}
 [data-testid="stStatusWidget"] {display: none !important;}
+/* ── Botón colapso sidebar siempre visible en desktop ── */
+[data-testid="stSidebarCollapsedControl"] {display: flex !important; visibility: visible !important;}
+[data-testid="collapsedControl"] {display: flex !important; visibility: visible !important;}
 /* ── Móvil: mostrar hamburguesa para abrir sidebar con filtros ── */
 @media (max-width: 768px) {
     #MainMenu {visibility: visible !important; display: block !important;}
@@ -658,7 +661,7 @@ PDFS_PLANES = {
     "Bupa MultiSalud Pro":         "https://tinyurl.com/bupa-multipro",
     "Mi Dental IntegraMédica 68%": "https://tinyurl.com/bupa-dental",
     "IntegraMédica 100%":          "https://tinyurl.com/bupa-im100",
-    "Plan Adulto Mayor 70%":       "https://tinyurl.com/bupa-adultomayor",
+    "Plan Adulto Mayor 70%":       "https://tinyurl.com/bupa-am70",
     "Bupa Complementa":            "https://tinyurl.com/bupa-complementa",
     "PYME Digital":                "https://tinyurl.com/bupa-pyme",
 }
