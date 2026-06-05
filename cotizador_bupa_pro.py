@@ -666,9 +666,9 @@ PDFS_PLANES = {
     "Bupa Cuidado Total 80":       "https://tinyurl.com/bupa-bct80",
     "Bupa MultiSalud":             "https://tinyurl.com/bupa-multi",
     "Bupa MultiSalud Pro":         "https://tinyurl.com/bupa-multipro",
-    "Mi Dental IntegraMédica 68%": "https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/Plan%20Dental%20Integram%C3%A9dica%2068%25.pdf",
-    "IntegraMédica 100%":          "https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/Plan%20Integram%C3%A9dica%20100%25.pdf",
-    "Plan Adulto Mayor 70%":       "https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/Plan%20Integram%C3%A9dica%20Adulto%20Mayor%2070.pdf",
+    "Mi Dental IntegraMédica 68%": "https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/Plan%20Dental%20IntegraMédica%2068%25.pdf",
+    "IntegraMédica 100%":          "https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/Plan%20IntegraMédica%20100%25.pdf",
+    "Plan Adulto Mayor 70%":       "https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/Plan%20IntegraMédica%20Adulto%20Mayor%2070.pdf",
     "Bupa Complementa":            "https://tinyurl.com/bupa-complementa",
     "PYME Digital":                "https://tinyurl.com/bupa-pyme",
 }
