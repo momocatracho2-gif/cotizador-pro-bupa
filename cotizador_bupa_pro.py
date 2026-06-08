@@ -35,37 +35,17 @@ st.set_page_config(
 # ══════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=3600)
 def get_uf_hoy():
-    """Obtiene UF desde mindicador.cl — último valor publicado (igual que SII/portal Bupa)."""
+    """Obtiene UF del día desde mindicador.cl con cache de 1 hora."""
     if not _REQUESTS_OK:
         return None, None
     try:
-        from datetime import date, timedelta
-        # Pedir los últimos 10 días y tomar el más reciente disponible
-        hoy = date.today()
-        url = f"https://mindicador.cl/api/uf/{hoy.strftime('%d-%m-%Y')}"
-        r = _requests.get(url, timeout=5)
+        r = _requests.get("https://mindicador.cl/api/uf", timeout=5)
         data = r.json()
-        serie = data.get("serie", [])
-        if serie:
-            # Tomar el valor más reciente de la serie
-            return float(serie[0]["valor"]), serie[0]["fecha"][:10]
-        # Si no hay datos para hoy, buscar el último disponible
-        for delta in range(1, 10):
-            fecha = hoy - timedelta(days=delta)
-            url2 = f"https://mindicador.cl/api/uf/{fecha.strftime('%d-%m-%Y')}"
-            r2 = _requests.get(url2, timeout=5)
-            data2 = r2.json()
-            serie2 = data2.get("serie", [])
-            if serie2:
-                return float(serie2[0]["valor"]), serie2[0]["fecha"][:10]
-        return None, None
+        valor = float(data["serie"][0]["valor"])
+        fecha = data["serie"][0]["fecha"][:10]
+        return valor, fecha
     except Exception:
-        try:
-            r = _requests.get("https://mindicador.cl/api/uf", timeout=5)
-            data = r.json()
-            return float(data["serie"][0]["valor"]), data["serie"][0]["fecha"][:10]
-        except Exception:
-            return None, None
+        return None, None
 
 # ══════════════════════════════════════════════════════════════════
 # LOGO BUPA — embebido base64
@@ -1055,7 +1035,7 @@ with _ctx:
     st.markdown("### ⚙️ Config")
     uf_api, uf_fecha = get_uf_hoy()
     if uf_api:
-        st.success("💱 UF SII " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (actualizada automáticamente)")
+        st.success("💱 UF " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (actualizada automáticamente)")
         uf_default = int(round(uf_api))
     else:
         st.warning("⚠️ No se pudo obtener la UF automática. Ingresa el valor manual.")
