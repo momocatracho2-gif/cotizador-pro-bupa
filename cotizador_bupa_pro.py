@@ -1603,46 +1603,98 @@ with t4:
         # ── Botón Email ──────────────────────────────────────────
         import re as _re
         def msg_a_email(msg_wa, nombre_c, planes_sel, uf_fmt_val, hoy_val):
-            """Genera versión formal del mensaje sin emojis para email."""
-            lineas = []
-            lineas.append("Estimado/a " + nombre_c + ",")
-            lineas.append("")
-            lineas.append("Junto con saludarle, le hago llegar la cotizacion de planes de salud complementaria Bupa Seguros solicitada.")
-            lineas.append("")
-            lineas.append("DETALLE DE PLANES COTIZADOS")
-            lineas.append("=" * 45)
+            """Genera correo profesional agrupado por familias de planes."""
+            L = []
+            nc = nombre_c if nombre_c and nombre_c != "Estimado/a" else "Cliente"
+
+            # ── Encabezado ────────────────────────────────────────
+            L.append("Estimado/a " + nc + ":")
+            L.append("")
+            L.append("Junto con saludar, le envio la cotizacion de los planes de salud complementaria Bupa Seguros que se ajustan a su perfil.")
+            L.append("")
+
+            # ── Agrupar por familia ───────────────────────────────
+            grupos = {"BCT":[],"BP":[],"MULTI":[],"CONV":[],"OTROS":[]}
             for pk in planes_sel:
+                nom = CATALOGO[pk]["nombre"]
+                if "Cuidado Total" in nom:       grupos["BCT"].append(pk)
+                elif "Proteccion" in nom or "Protección" in nom: grupos["BP"].append(pk)
+                elif "MultiSalud" in nom:        grupos["MULTI"].append(pk)
+                elif pk in CONVENIOS:            grupos["CONV"].append(pk)
+                else:                            grupos["OTROS"].append(pk)
+
+            # Intro contextual según familias presentes
+            if len(grupos["BCT"]) > 1:
+                nombres_bct = ", ".join(CATALOGO[pk]["nombre"] for pk in grupos["BCT"])
+                L.append("Los planes " + nombres_bct + " mantienen las mismas coberturas principales, diferenciandose en el porcentaje de reembolso y en el tope anual disponible. Esto permite elegir el nivel de proteccion que mejor se adapte a sus necesidades y presupuesto.")
+                L.append("")
+            if len(grupos["BP"]) > 1:
+                L.append("Los planes Bupa + Proteccion ofrecen la misma estructura de beneficios. La diferencia esta en el porcentaje de cobertura hospitalaria y ambulatoria, y en el tope anual.")
+                L.append("")
+
+            L.append("DETALLE DE PLANES COTIZADOS")
+            L.append("=" * 45)
+
+            def detalle_plan(pk):
                 p = CATALOGO[pk]; r = precios[pk]
                 pct = r.get("pct", 0)
-                orig = round(r["total"] / (1 - pct/100), 2) if pct > 0 else None
-                lineas.append("")
-                lineas.append("Plan: " + p["nombre"])
-                lineas.append("-" * 35)
-                if orig:
-                    lineas.append("Precio mensual: UF " + f"{orig:.2f}" + " -> UF " + f"{r['total']:.2f}" + " con descuento " + str(pct) + "% (" + clp(r["total"], val_uf) + "/mes)")
-                    lineas.append("Cupon: " + r.get("cupon",""))
+                es_rec = pk == rec
+                titulo = p["nombre"].upper() + (" (RECOMENDADO)" if es_rec else "")
+                lineas = ["", titulo]
+                if pct > 0:
+                    orig = round(r["total"] / (1 - pct/100), 2)
+                    lineas.append("  Prima mensual: UF " + f"{orig:.2f}" + " con descuento " + str(pct) + "% = UF " + f"{r['total']:.2f}" + " (" + clp(r["total"], val_uf) + " aprox.)")
+                    lineas.append("  Cupon de descuento: " + r.get("cupon",""))
                 else:
-                    lineas.append("Precio mensual: UF " + f"{r['total']:.2f}" + " (" + clp(r["total"], val_uf) + "/mes)")
-                lineas.append("Precio anual aprox.: " + clp(r["total"]*12, val_uf))
-                lineas.append("Cobertura hospitalaria: " + p["hosp"])
-                lineas.append("Cobertura ambulatoria: " + p["amb"])
-                lineas.append("Tope base: " + p["tope_base"])
-                lineas.append("Deducible ambulatorio: " + p["ded_amb"])
-                lineas.append("DPS requerida: " + ("Si" if p["dps"] else "No - cubre preexistencias"))
+                    lineas.append("  Prima mensual: UF " + f"{r['total']:.2f}" + " (" + clp(r["total"], val_uf) + " aprox.)")
+                lineas.append("  Prima anual estimada: " + clp(r["total"]*12, val_uf))
+                lineas.append("  Cobertura hospitalaria: " + p["hosp"])
+                lineas.append("  Cobertura ambulatoria: " + p["amb"])
+                lineas.append("  Tope anual: " + p["tope_base"])
+                lineas.append("  Deducible: " + p["ded_amb"])
+                lineas.append("  Declaracion Personal de Salud (DPS): " + ("Requerida" if p["dps"] else "No requerida - cubre preexistencias"))
+                if p.get("f_cat"): lineas.append("  Extension catastrofica: 100% hasta " + p["tope_cat"])
+                if p.get("f_maternidad"): lineas.append("  Maternidad: incluida")
                 if p["nombre"] in PDFS_PLANES:
-                    lineas.append("Condiciones del plan: " + PDFS_PLANES[p["nombre"]])
-            lineas.append("")
-            lineas.append("=" * 45)
-            lineas.append("Quedo a su disposicion para cualquier consulta.")
-            lineas.append("")
-            lineas.append("Saludos cordiales,")
-            lineas.append(ASESOR_NOMBRE)
-            lineas.append(ASESOR_TELEFONO)
-            if ASESOR_EMAIL:
-                lineas.append(ASESOR_EMAIL)
-            lineas.append("")
-            lineas.append("Cotizacion tarifario Bupa Seguros. UF " + uf_fmt_val + " del dia " + hoy_val + ". El riesgo es cubierto por Bupa Compania de Seguros de Vida S.A.")
-            return "\r\n".join(lineas)
+                    lineas.append("  Ficha informativa: " + PDFS_PLANES[p["nombre"]])
+                return lineas
+
+            # Familias con título de sección
+            secciones = [
+                ("BCT",  "PLANES BUPA CUIDADO TOTAL"),
+                ("BP",   "PLANES BUPA + PROTECCION"),
+                ("MULTI","PLANES BUPA MULTISALUD"),
+                ("CONV", "CONVENIOS ESPECIALES (SIN DPS - CUBREN PREEXISTENCIAS)"),
+                ("OTROS","OTROS PLANES"),
+            ]
+            for clave, titulo_sec in secciones:
+                if grupos[clave]:
+                    L.append("")
+                    L.append(titulo_sec)
+                    L.append("-" * 45)
+                    for pk in grupos[clave]:
+                        L.extend(detalle_plan(pk))
+
+            # ── Recomendación ─────────────────────────────────────
+            L.append("")
+            L.append("=" * 45)
+            if rec in planes_sel:
+                L.append("Mi recomendacion es evaluar especialmente el plan " + CATALOGO[rec]["nombre"] + ", ya que ofrece el mejor equilibrio entre cobertura, proteccion financiera y tope anual disponible.")
+            else:
+                L.append("Quedo disponible para orientarle respecto de cual alternativa se adapta mejor a sus necesidades.")
+            L.append("")
+            L.append("Quedo atento a sus comentarios y con gusto puedo agendar una reunion para resolver sus dudas.")
+            L.append("")
+            L.append("Saludos cordiales,")
+            L.append("")
+            L.append(ASESOR_NOMBRE)
+            if ASESOR_TELEFONO: L.append(ASESOR_TELEFONO)
+            if ASESOR_EMAIL:    L.append(ASESOR_EMAIL)
+            L.append("")
+            L.append("Cotizacion referencial segun tarifario vigente.")
+            L.append("Valor UF utilizado: $" + uf_fmt_val + " al " + hoy_val + ".")
+            L.append("El riesgo es cubierto por Bupa Compania de Seguros de Vida S.A.")
+            return "\r\n".join(L)
 
         asunto_email = "Cotizacion Bupa Seguros - " + (nombre or "Cliente")
         cuerpo_email = msg_a_email(msg, nombre or "Cliente", planes_seleccionados, uf_fmt, hoy)
