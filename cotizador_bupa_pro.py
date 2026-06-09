@@ -1223,7 +1223,7 @@ else:
 # ══════════════════════════════════════════════════════════════════
 # TABS
 # ══════════════════════════════════════════════════════════════════
-t1,t2,t3,t4,t5 = st.tabs(["📋 Detalle de Planes","📊 Comparativa","🔍 Coberturas","📱 WhatsApp","📧 Email"])
+t1,t2,t3,t4 = st.tabs(["📋 Detalle de Planes","📊 Comparativa","🔍 Coberturas","📱 WhatsApp"])
 
 # ── TAB 1 ─────────────────────────────────────────────────────────
 with t1:
@@ -1363,8 +1363,9 @@ with t4:
         wa1,wa2=st.columns([2,3])
         with wa1:
             telefono_cliente=st.text_input("WhatsApp cliente (solo 9 dígitos)",placeholder="912345678")
-        with wa3:
+        with wa2:
             modo = st.radio("Modo", ["Comparativa (todos los seleccionados)","Un solo plan"])
+        email_cliente = ""
 
         hoy=date.today().strftime("%d/%m/%Y"); nc=nombre or "Estimado/a"
 
@@ -1645,6 +1646,12 @@ with t4:
 
         asunto_email = "Cotizacion Bupa Seguros - " + (nombre or "Cliente")
         cuerpo_email = msg_a_email(msg, nombre or "Cliente", planes_seleccionados, uf_fmt, hoy)
+        mailto_link = (
+            "mailto:" + (email_cliente if email_cliente else "") +
+            "?subject=" + quote(asunto_email, safe="") +
+            "&body=" + quote(cuerpo_email, safe="")
+        )
+        st.link_button("📧 Abrir en Outlook / Mail", mailto_link)
 
         st.success("✅ Mensaje listo con "+str(len(planes_seleccionados))+" plan(es) seleccionado(s).")
         with st.expander("📎 Verificar PDFs"):
@@ -1654,34 +1661,6 @@ with t4:
                 if np2 in PDFS_PLANES:
                     with cols_pdf[i % 3]:
                         st.link_button("📄 "+np2, PDFS_PLANES[np2], use_container_width=True)
-
-with t5:
-    st.subheader("📧 Correo Electrónico")
-    if not planes_seleccionados:
-        st.info("Selecciona planes arriba para generar el correo.")
-    else:
-        em1, em2 = st.columns(2)
-        with em1:
-            email_dest = st.text_input("Email destinatario", placeholder="cliente@email.com", key="email_dest_t5")
-        with em2:
-            st.caption("")
-            st.caption("Puedes enviar directo a Outlook o copiar el mensaje y pegarlo manualmente.")
-        try:
-            st.markdown("#### Vista previa del mensaje:")
-            st.code(cuerpo_email, language=None)
-            em_col1, em_col2 = st.columns(2)
-            with em_col1:
-                outlook_link = (
-                    "https://outlook.office.com/mail/deeplink/compose" +
-                    "?to=" + quote(email_dest if email_dest else "", safe="") +
-                    "&subject=" + quote(asunto_email, safe="") +
-                    "&body=" + quote(cuerpo_email, safe="")
-                )
-                st.link_button("📧 Abrir en Outlook Online", outlook_link, use_container_width=True)
-            with em_col2:
-                st.info("Si Outlook no carga el cuerpo completo, copia el mensaje de arriba y pegalo manualmente.")
-        except NameError:
-            st.info("Genera primero el mensaje en la tab WhatsApp.")
 
 # ══════════════════════════════════════════════════════════════════
 # PYME
