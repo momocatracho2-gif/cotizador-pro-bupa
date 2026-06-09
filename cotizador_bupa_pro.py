@@ -1360,10 +1360,12 @@ with t4:
     if not planes_seleccionados:
         st.info("Selecciona planes arriba para generar el mensaje.")
     else:
-        wa1,wa2=st.columns(2)
+        wa1,wa2,wa3=st.columns([2,2,3])
         with wa1:
             telefono_cliente=st.text_input("WhatsApp cliente (solo 9 dígitos)",placeholder="912345678")
         with wa2:
+            email_cliente=st.text_input("Email cliente (opcional)",placeholder="cliente@email.com")
+        with wa3:
             modo = st.radio("Modo", ["Comparativa (todos los seleccionados)","Un solo plan"])
 
         hoy=date.today().strftime("%d/%m/%Y"); nc=nombre or "Estimado/a"
@@ -1598,6 +1600,59 @@ with t4:
             st.link_button("📲 Abrir WhatsApp", wa_link)
         else:
             st.warning("⚠️ Ingresa el número del cliente para abrir WhatsApp.")
+
+        # ── Botón Email ──────────────────────────────────────────
+        import re as _re
+        def msg_a_email(msg_wa, nombre_c, planes_sel, uf_fmt_val, hoy_val):
+            """Genera versión formal del mensaje sin emojis para email."""
+            lineas = []
+            lineas.append("Estimado/a " + nombre_c + ",")
+            lineas.append("")
+            lineas.append("Junto con saludarle, le hago llegar la cotizacion de planes de salud complementaria Bupa Seguros solicitada.")
+            lineas.append("")
+            lineas.append("DETALLE DE PLANES COTIZADOS")
+            lineas.append("=" * 45)
+            for pk in planes_sel:
+                p = CATALOGO[pk]; r = precios[pk]
+                pct = r.get("pct", 0)
+                orig = round(r["total"] / (1 - pct/100), 2) if pct > 0 else None
+                lineas.append("")
+                lineas.append("Plan: " + p["nombre"])
+                lineas.append("-" * 35)
+                if orig:
+                    lineas.append("Precio mensual: UF " + f"{orig:.2f}" + " -> UF " + f"{r['total']:.2f}" + " con descuento " + str(pct) + "% (" + clp(r["total"], val_uf) + "/mes)")
+                    lineas.append("Cupon: " + r.get("cupon",""))
+                else:
+                    lineas.append("Precio mensual: UF " + f"{r['total']:.2f}" + " (" + clp(r["total"], val_uf) + "/mes)")
+                lineas.append("Precio anual aprox.: " + clp(r["total"]*12, val_uf))
+                lineas.append("Cobertura hospitalaria: " + p["hosp"])
+                lineas.append("Cobertura ambulatoria: " + p["amb"])
+                lineas.append("Tope base: " + p["tope_base"])
+                lineas.append("Deducible ambulatorio: " + p["ded_amb"])
+                lineas.append("DPS requerida: " + ("Si" if p["dps"] else "No - cubre preexistencias"))
+                if p["nombre"] in PDFS_PLANES:
+                    lineas.append("Condiciones del plan: " + PDFS_PLANES[p["nombre"]])
+            lineas.append("")
+            lineas.append("=" * 45)
+            lineas.append("Quedo a su disposicion para cualquier consulta.")
+            lineas.append("")
+            lineas.append("Saludos cordiales,")
+            lineas.append(ASESOR_NOMBRE)
+            lineas.append(ASESOR_TELEFONO)
+            if ASESOR_EMAIL:
+                lineas.append(ASESOR_EMAIL)
+            lineas.append("")
+            lineas.append("Cotizacion tarifario Bupa Seguros. UF " + uf_fmt_val + " del dia " + hoy_val + ". El riesgo es cubierto por Bupa Compania de Seguros de Vida S.A.")
+            return "\r\n".join(lineas)
+
+        asunto_email = "Cotizacion Bupa Seguros - " + (nombre or "Cliente")
+        cuerpo_email = msg_a_email(msg, nombre or "Cliente", planes_seleccionados, uf_fmt, hoy)
+        mailto_link = (
+            "mailto:" + (email_cliente if email_cliente else "") +
+            "?subject=" + quote(asunto_email, safe="") +
+            "&body=" + quote(cuerpo_email, safe="")
+        )
+        st.link_button("📧 Abrir en Outlook / Mail", mailto_link)
 
         st.success("✅ Mensaje listo con "+str(len(planes_seleccionados))+" plan(es) seleccionado(s).")
         with st.expander("📎 Verificar PDFs"):
