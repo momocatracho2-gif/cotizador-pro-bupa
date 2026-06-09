@@ -1647,12 +1647,18 @@ with t4:
 
         asunto_email = "Cotizacion Bupa Seguros - " + (nombre or "Cliente")
         cuerpo_email = msg_a_email(msg, nombre or "Cliente", planes_seleccionados, uf_fmt, hoy)
-        mailto_link = (
-            "mailto:" + (email_cliente if email_cliente else "") +
-            "?subject=" + quote(asunto_email, safe="") +
-            "&body=" + quote(cuerpo_email, safe="")
-        )
-        st.link_button("📧 Abrir en Outlook / Mail", mailto_link)
+
+        # ── Mostrar mensaje email desplegado ──────────────────────
+        with st.expander("📧 Ver mensaje de correo formal"):
+            st.code(cuerpo_email, language=None)
+            # Botón Outlook online
+            outlook_link = (
+                "https://outlook.office.com/mail/deeplink/compose" +
+                "?to=" + quote(email_cliente if email_cliente else "", safe="") +
+                "&subject=" + quote(asunto_email, safe="") +
+                "&body=" + quote(cuerpo_email, safe="")
+            )
+            st.link_button("📧 Abrir en Outlook Online", outlook_link)
 
         st.success("✅ Mensaje listo con "+str(len(planes_seleccionados))+" plan(es) seleccionado(s).")
         with st.expander("📎 Verificar PDFs"):
