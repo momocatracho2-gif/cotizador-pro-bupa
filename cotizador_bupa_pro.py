@@ -33,19 +33,36 @@ st.set_page_config(
 # ══════════════════════════════════════════════════════════════════
 # UF AUTOMÁTICA — mindicador.cl (cachea 1 hora)
 # ══════════════════════════════════════════════════════════════════
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_uf_hoy():
     """Obtiene UF del día desde mindicador.cl con cache de 1 hora."""
     if not _REQUESTS_OK:
         return None, None
-    try:
-        r = _requests.get("https://mindicador.cl/api/uf", timeout=5)
-        data = r.json()
-        valor = float(data["serie"][0]["valor"])
-        fecha = data["serie"][0]["fecha"][:10]
-        return valor, fecha
-    except Exception:
-        return None, None
+    urls = [
+        "https://mindicador.cl/api/uf",
+        "https://api.cmfchile.cl/api-sbifv3/recursos_api/uf?apikey=&formato=json",
+    ]
+    for url in urls:
+        try:
+            r = _requests.get(url, timeout=10,
+                headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+            if r.status_code == 200:
+                data = r.json()
+                # mindicador.cl
+                if "serie" in data and data["serie"]:
+                    valor = float(data["serie"][0]["valor"])
+                    fecha = data["serie"][0]["fecha"][:10]
+                    return valor, fecha
+                # CMF Chile fallback
+                if "UFs" in data and data["UFs"]:
+                    uf = data["UFs"][0]
+                    valor = float(str(uf.get("Valor","0")).replace(".","").replace(",","."))
+                    fecha = uf.get("Fecha","")[:10]
+                    if valor > 0:
+                        return valor, fecha
+        except Exception:
+            continue
+    return None, None
 
 # ══════════════════════════════════════════════════════════════════
 # LOGO BUPA — embebido base64
