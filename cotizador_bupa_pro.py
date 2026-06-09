@@ -1360,11 +1360,9 @@ with t4:
     if not planes_seleccionados:
         st.info("Selecciona planes arriba para generar el mensaje.")
     else:
-        wa1,wa2,wa3=st.columns([2,2,3])
+        wa1,wa2=st.columns([2,3])
         with wa1:
             telefono_cliente=st.text_input("WhatsApp cliente (solo 9 dígitos)",placeholder="912345678")
-        with wa2:
-            email_cliente=st.text_input("Email cliente (opcional)",placeholder="cliente@email.com")
         with wa3:
             modo = st.radio("Modo", ["Comparativa (todos los seleccionados)","Un solo plan"])
 
