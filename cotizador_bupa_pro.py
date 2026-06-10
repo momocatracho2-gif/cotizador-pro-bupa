@@ -659,6 +659,32 @@ if st.session_state.es_admin:
         st.session_state.pop("secrets_pendientes", None)
         st.rerun()
     st.stop()
+# ── SELECTOR PRINCIPAL ────────────────────────────────────
+seccion = st.radio(
+    "¿Qué quieres cotizar?",
+    ["🔵 Seguros Bupa", "🔴 ISAPRE Cruz Blanca"],
+    horizontal=True,
+    key="seccion_principal"
+)
+st.markdown("---")
+
+if "Cruz Blanca" in seccion:
+    asesores = load_asesores()
+    asesor_d = asesores.get(st.session_state.usuario, {})
+    asesor_cb = {
+        "nombre":   asesor_d.get("nombre",   "Asesor Bupa"),
+        "telefono": asesor_d.get("telefono", "+569 00000000"),
+        "email":    asesor_d.get("email",    ""),
+    }
+    uf_api_cb, _ = get_uf_hoy()
+    uf_cb = uf_api_cb if uf_api_cb else 40180
+    from cruz_blanca_module import (
+        seccion_cruz_blanca, PLANES_CB_RM, CLINICAS_CB,
+        FACTOR_RIESGO, GES_UF, TOPE_IMPONIBLE_UF,
+        calcular_precio_plan, seleccionar_recomendados
+    )
+    seccion_cruz_blanca(uf_valor=uf_cb, asesor=asesor_cb)
+    st.stop()
 
 # ══════════════════════════════════════════════════════════════════
 # PERFIL DEL ASESOR LOGUEADO
@@ -1549,7 +1575,6 @@ with t4:
                         "\n🔹 *"+str(num_counter)+". "+p["emoji"]+" "+p["nombre"]+"*"+rec_s+"\n"
                         "   "+dif+"\n"
                         "   💰 "+precio_wa(pk)+cup_b+"\n"
-                        "   👥 *Asegurados:*"+aseg_str(pk)+"\n"
                         +pdf_lnk+"\n"
                     )
                 bloques += "\n━━━━━━━━━━━━━━━━━━━━━\n"
@@ -1567,7 +1592,6 @@ with t4:
                 bloques += (
                     "\n🔹 *"+str(num_counter)+". "+p["emoji"]+" "+p["nombre"]+"*"+tr_b+rec_s+conv_s+"\n\n"
                     "   💰 "+precio_wa(pk)+cup_b+"\n"
-                    "   👥 *Asegurados:*"+aseg_str(pk)+"\n"
                     +"\n".join("   ✅ "+pt for pt in pts[:7])+"\n"
                     "   📌 Tope: "+p["tope_base"]+" · Ded.: "+p["ded_amb"]+"\n"
                     "   📋 DPS: "+("No requerida" if not p["dps"] else "Requerida")+"\n"
@@ -1650,18 +1674,6 @@ with t4:
                 else:
                     lineas.append("  Prima mensual: UF " + f"{r['total']:.2f}" + " (" + clp(r["total"], val_uf) + " aprox.)")
                 lineas.append("  Prima anual estimada: " + clp(r["total"]*12, val_uf))
-                # Desglose por asegurado
-                if not r.get("es_convenio") and r.get("det"):
-                    lineas.append("  Asegurados:")
-                    for d in r["det"]:
-                        if d.get("final"):
-                            lbl = edad_label(d)
-                            if d.get("pct",0)>0 and d.get("orig"):
-                                lineas.append("    - " + d["quien"] + " (" + lbl + "): UF " + f"{d['orig']:.2f}" + " con descuento = UF " + f"{d['final']:.2f}" + " (" + clp(d["final"], val_uf) + ")")
-                            else:
-                                lineas.append("    - " + d["quien"] + " (" + lbl + "): UF " + f"{d['final']:.2f}" + " (" + clp(d["final"], val_uf) + ")")
-                elif r.get("es_convenio") and r.get("tramo"):
-                    lineas.append("  Tramo: " + r["tramo"])
                 lineas.append("  Cobertura hospitalaria: " + p["hosp"])
                 lineas.append("  Cobertura ambulatoria: " + p["amb"])
                 lineas.append("  Tope anual: " + p["tope_base"])
