@@ -647,8 +647,19 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
 
     # ── Botón limpiar ───────────────────────────────────────────
     if st.button("🗑️ Limpiar cotización", key="cb_limpiar"):
-        keys_to_clear = [k for k in st.session_state if k.startswith("cb_")]
+        # No borrar keys de widgets activos (causa conflicto en Streamlit)
+        # Solo resetear los valores de datos y forzar defaults
+        keys_to_clear = [
+            "cb_sueldo", "cb_edad_titular", "cb_n_cargas",
+            "cb_clinicas_pref", "cb_tipo_plan", "cb_tel_cliente",
+            "cb_email_nom", "cb_wa_txt", "cb_email_txt",
+            "cb_ctx", "cb_sel_default",
+        ]
         for k in keys_to_clear:
+            if k in st.session_state:
+                del st.session_state[k]
+        # Limpiar cargas dinámicas
+        for k in [k for k in st.session_state if k.startswith("cb_carga_")]:
             del st.session_state[k]
         st.rerun()
 
@@ -797,6 +808,9 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         # Contexto cambió — resetear selección a recomendados
         st.session_state["cb_ctx"] = ctx_key
         st.session_state["cb_sel_default"] = idxs_rec_global
+        # Limpiar selección previa del widget para evitar error de índice inválido
+        if "cb_seleccion" in st.session_state:
+            del st.session_state["cb_seleccion"]
     
     default_sel = st.session_state.get("cb_sel_default", idxs_rec_global)
     # Validar que los índices siguen siendo válidos
