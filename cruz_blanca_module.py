@@ -645,23 +645,26 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Botón limpiar ───────────────────────────────────────────
-    if st.button("🗑️ Limpiar cotización", key="cb_limpiar"):
-        # No borrar keys de widgets activos (causa conflicto en Streamlit)
-        # Solo resetear los valores de datos y forzar defaults
-        keys_to_clear = [
-            "cb_sueldo", "cb_edad_titular", "cb_n_cargas",
-            "cb_clinicas_pref", "cb_tipo_plan", "cb_tel_cliente",
-            "cb_email_nom", "cb_wa_txt", "cb_email_txt",
-            "cb_ctx", "cb_sel_default",
-        ]
-        for k in keys_to_clear:
-            if k in st.session_state:
+    # ── Botón limpiar — sin rerun para no afectar login ───────
+    col_lim, _ = st.columns([1, 4])
+    with col_lim:
+        if st.button("🗑️ Nueva cotización", key="cb_limpiar", 
+                     help="Limpia todos los campos para una nueva consulta"):
+            keys_cb = [k for k in list(st.session_state.keys()) 
+                      if k.startswith("cb_") and k != "cb_limpiar"]
+            for k in keys_cb:
                 del st.session_state[k]
-        # Limpiar cargas dinámicas
-        for k in [k for k in st.session_state if k.startswith("cb_carga_")]:
-            del st.session_state[k]
-        st.rerun()
+            # rerun seguro: preserva login_ok, usuario, es_admin
+            login_ok  = st.session_state.get("login_ok", False)
+            usuario   = st.session_state.get("usuario", "")
+            es_admin  = st.session_state.get("es_admin", False)
+            seccion   = st.session_state.get("seccion_principal", "🔴 ISAPRE Cruz Blanca")
+            st.session_state.clear()
+            st.session_state["login_ok"]          = login_ok
+            st.session_state["usuario"]            = usuario
+            st.session_state["es_admin"]           = es_admin
+            st.session_state["seccion_principal"]  = seccion
+            st.rerun()
 
     is_mobile = st.session_state.get("is_mobile", False)
     col_filters = st.expander("⚙️ Filtros y datos del cotizante", expanded=True) if is_mobile else st.container()
