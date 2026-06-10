@@ -622,6 +622,7 @@ def seleccionar_recomendados(planes_calc: list, sueldo_uf: float, clinica_pref: 
 
 
 
+
 def seccion_cruz_blanca(uf_valor: float, asesor: dict):
     import streamlit as st
     import pandas as pd
@@ -674,13 +675,11 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
             )
 
         with c3:
-            # Selección múltiple de clínicas preferidas
             clinicas_pref = st.multiselect(
                 "🏥 Clínicas preferidas (hospitalaria)",
                 CLINICAS_CB,
                 key="cb_clinicas_pref",
                 placeholder="Selecciona una o más clínicas...",
-                help="Puedes seleccionar hasta 3 clínicas preferidas"
             )
             tipo_plan = st.selectbox(
                 "📋 Tipo de plan",
@@ -718,7 +717,7 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
     ]
 
     if not planes_filtrados:
-        st.warning("⚠️ No se encontraron planes con los filtros seleccionados. Prueba ampliar los criterios.")
+        st.warning("⚠️ No se encontraron planes con los filtros seleccionados.")
         return
 
     # ── CALCULAR PRECIOS ────────────────────────────────────────
@@ -729,15 +728,25 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         adicional_uf = calculo["total_uf"] - cotiz_7_uf
         pct_sueldo = (calculo["total_uf"] / sueldo_uf * 100) if sueldo_uf > 0 else 0
 
-        if adicional_uf <= 0:
-            semaforo = "🟢"
-            factib = "Cubierto íntegramente por tu 7%"
-        elif pct_sueldo <= 12:
-            semaforo = "🟡"
-            factib = f"Adicional: UF {adicional_uf:.3f} (${adicional_uf*uf_valor:,.0f}/mes)"
-        else:
+        # Semáforo Ley Corta:
+        # < 7%  → rojo (no contratables, no hay excedentes)
+        # 7-12% → verde (factible)
+        # > 12% → amarillo (factible con cargas o evaluar)
+        if calculo["total_uf"] < cotiz_7_uf:
             semaforo = "🔴"
-            factib = f"Supera 12% del sueldo — evaluar factibilidad"
+            factib = "Menor al 7% — no contratable (Ley Corta, sin excedentes)"
+            contratab = False
+        elif pct_sueldo <= 12:
+            semaforo = "🟢"
+            if adicional_uf <= 0:
+                factib = "Cubierto íntegramente por tu 7%"
+            else:
+                factib = f"Adicional: UF {adicional_uf:.3f} (${adicional_uf*uf_valor:,.0f}/mes)"
+            contratab = True
+        else:
+            semaforo = "🟡"
+            factib = f"Supera 12% — UF {adicional_uf:.3f} adicional (${adicional_uf*uf_valor:,.0f}/mes)"
+            contratab = True
 
         planes_calc.append({
             "plan": p,
@@ -747,26 +756,33 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
             "pct_sueldo": pct_sueldo,
             "semaforo": semaforo,
             "factib": factib,
+            "contratab": contratab,
         })
 
     planes_calc.sort(key=lambda x: x["calculo"]["total_uf"])
 
-    # ── SELECCIÓN AUTOMÁTICA ────────────────────────────────────
+    # ── SELECCIÓN AUTOMÁTICA (solo contratables) ────────────────
     clinica_para_rec = clinicas_pref[0] if clinicas_pref else "Clínica Bupa Santiago"
-    idxs_rec = seleccionar_recomendados(planes_calc, sueldo_uf, clinica_para_rec)
+    planes_rec = [p for p in planes_calc if p["contratab"]]
+    idxs_rec = seleccionar_recomendados(planes_rec if planes_rec else planes_calc, sueldo_uf, clinica_para_rec)
+    # Ajustar índices al listado completo
+    idxs_rec_global = []
+    for ir in idxs_rec:
+        obj = (planes_rec if planes_rec else planes_calc)[ir]
+        idxs_rec_global.append(planes_calc.index(obj))
 
     st.markdown("---")
     st.markdown("#### 📌 Planes seleccionados para cotización")
-    st.caption("El sistema pre-seleccionó el mejor y el más económico. Puedes cambiar la selección.")
+    st.caption("🟢 Verde = entre 7% y 12% del sueldo  |  🟡 Amarillo = supera 12%  |  🔴 Rojo = menor al 7% (no contratable)")
 
     opciones_display = [
-        f"{p['semaforo']} {p['plan']['codigo']} — {p['plan']['familia']} — UF {p['calculo']['total_uf']:.3f} ({p['pct_sueldo']:.1f}% sueldo)"
+        f"{p['semaforo']} {p['plan']['codigo']} — {p['plan']['familia']} — UF {p['calculo']['total_uf']:.3f} ({p['pct_sueldo']:.1f}% sueldo) — {p['factib']}"
         for p in planes_calc
     ]
     seleccionados_idx = st.multiselect(
         "Selecciona 1 o más planes:",
         options=list(range(len(planes_calc))),
-        default=idxs_rec,
+        default=idxs_rec_global,
         format_func=lambda i: opciones_display[i],
         key="cb_seleccion",
     )
@@ -777,19 +793,32 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
 
     planes_sel = [planes_calc[i] for i in seleccionados_idx]
 
-    # ── TABS ────────────────────────────────────────────────────
-    tab_detalle, tab_comp, tab_wa, tab_email = st.tabs(
-        ["📋 Detalle", "📊 Comparativa", "💬 WhatsApp", "📧 Email"]
-    )
-
     # ── HELPERS ─────────────────────────────────────────────────
-    def desglose_beneficiarios(pc, sep="\n"):
-        """Solo titular y cargas, sin GES."""
+    def desglose_formula(pc, sep="\n"):
+        """FR × PB + GES = total por beneficiario."""
+        p    = pc["plan"]
         calc = pc["calculo"]
+        pb   = p["precio_base"]
         lineas = []
         for d in calc["desglose"]:
+            fr  = d["fr"]
+            sub = fr * pb
+            tot = sub + GES_UF
             lineas.append(
-                f"   {d['rol']} ({d['edad']} años) = UF {d['precio_uf']:.3f} - ${d['precio_uf']*uf_valor:,.0f}"
+                f"   {d['rol']} ({d['edad']} años): "
+                f"FR {fr} × UF {pb} + GES {GES_UF} = UF {tot:.3f} (${tot*uf_valor:,.0f})"
+            )
+        return sep.join(lineas)
+
+    def desglose_simple(pc, sep="\n"):
+        """Solo total por beneficiario sin fórmula — para WhatsApp."""
+        calc = pc["calculo"]
+        pb   = pc["plan"]["precio_base"]
+        lineas = []
+        for d in calc["desglose"]:
+            tot = d["fr"] * pb + GES_UF
+            lineas.append(
+                f"   {d['rol']} ({d['edad']} años) = UF {tot:.3f} - ${tot*uf_valor:,.0f}"
             )
         return sep.join(lineas)
 
@@ -797,55 +826,85 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         p = pc["plan"]
         lineas = ["🏥 Cobertura Hospitalaria:"]
         for cl, pct in sorted(p["cob_hosp"].items(), key=lambda x: -x[1]):
-            stars = ""
-            if clinicas_pref and cl in clinicas_pref:
-                stars = " ⭐"
-            lineas.append(f"   {pct}% {cl}{stars}")
+            star = " ⭐" if clinicas_pref and cl in clinicas_pref else ""
+            lineas.append(f"   {pct}% {cl}{star}")
         lineas.append("💊 Cobertura Ambulatoria:")
         for cl, pct in sorted(p["cob_amb"].items(), key=lambda x: -x[1]):
-            stars = ""
-            if clinicas_pref and cl in clinicas_pref:
-                stars = " ⭐"
-            lineas.append(f"   {pct}% {cl}{stars}")
+            star = " ⭐" if clinicas_pref and cl in clinicas_pref else ""
+            lineas.append(f"   {pct}% {cl}{star}")
         return sep.join(lineas)
 
-    def situacion_financiera(pc, sep="\n"):
+    def situacion_financiera_txt(pc):
         if pc["adicional_uf"] <= 0:
-            return "✅ El plan queda cubierto íntegramente por su cotización del 7%."
-        return sep.join([
-            f"Tu 7% cubre: UF {cotiz_7_uf:.3f} (${cotiz_7_uf*uf_valor:,.0f}/mes)",
-            f"Adicional que pagas: UF {pc['adicional_uf']:.3f} (${pc['adicional_uf']*uf_valor:,.0f}/mes)",
-            f"El plan representa el {pc['pct_sueldo']:.1f}% de tu sueldo",
-        ])
+            return "✅ Cubierto íntegramente por tu cotización del 7%"
+        return (
+            f"Tu 7% cubre: UF {cotiz_7_uf:.3f} (${cotiz_7_uf*uf_valor:,.0f}/mes)\n"
+            f"Adicional que pagas: UF {pc['adicional_uf']:.3f} (${pc['adicional_uf']*uf_valor:,.0f}/mes)\n"
+            f"El plan representa el {pc['pct_sueldo']:.1f}% de tu sueldo"
+        )
+
+    # ── TABS ────────────────────────────────────────────────────
+    tab_detalle, tab_comp, tab_wa, tab_email = st.tabs(
+        ["📋 Detalle", "📊 Comparativa", "💬 WhatsApp", "📧 Email"]
+    )
 
     # ── TAB DETALLE ─────────────────────────────────────────────
     with tab_detalle:
         for pc in planes_sel:
             p    = pc["plan"]
             calc = pc["calculo"]
+            pb   = p["precio_base"]
             tag_tipo = "🔒 Cerrado" if p["tipo"] == "cerrado" else "🔓 Libre Elección"
+            border = "#E30613" if pc["contratab"] else "#888"
+
             col_h, col_b = st.columns([3, 2])
             with col_h:
                 st.markdown(f"""
-                <div style='background:#fff;border:2px solid #E30613;border-radius:10px;padding:16px;margin-bottom:12px'>
+                <div style='background:#fff;border:2px solid {border};border-radius:10px;padding:16px;margin-bottom:8px'>
                     <div style='color:#E30613;font-size:1rem;font-weight:700'>{p['familia']} &nbsp;<span style='font-size:0.8rem;color:#666'>{tag_tipo}</span></div>
-                    <div style='font-size:0.85rem;color:#444;margin:2px 0 8px'>{p['codigo']}</div>
-                    <div style='font-size:1.5rem;font-weight:700;color:#222'>UF {calc['total_uf']:.3f} <span style='font-size:0.95rem;color:#555;font-weight:400'>≈ ${pc['total_clp']:,.0f}/mes</span></div>
+                    <div style='font-size:0.85rem;color:#444;margin:2px 0 6px'>{p['codigo']} &nbsp;·&nbsp; Precio base: UF {pb}</div>
+                    <div style='font-size:1.5rem;font-weight:700;color:#222'>UF {calc['total_uf']:.3f} <span style='font-size:0.9rem;color:#555;font-weight:400'>≈ ${pc['total_clp']:,.0f}/mes</span></div>
                     <div style='margin-top:6px'>{pc['semaforo']} {pc['factib']}</div>
                 </div>
                 """, unsafe_allow_html=True)
+
+                # Tabla de cálculo detallado
+                st.markdown("**📐 Detalle del cálculo:**")
+                filas_calc = []
+                for d in calc["desglose"]:
+                    fr  = d["fr"]
+                    sub = round(fr * pb, 3)
+                    tot = round(sub + GES_UF, 3)
+                    filas_calc.append({
+                        "Beneficiario": f"{d['rol']} ({d['edad']} años)",
+                        "FR": fr,
+                        "FR × PB": f"UF {sub:.3f}",
+                        "+ GES": f"UF {GES_UF}",
+                        "= Total": f"UF {tot:.3f}",
+                        "En $": f"${tot*uf_valor:,.0f}",
+                    })
+                filas_calc.append({
+                    "Beneficiario": "TOTAL PLAN",
+                    "FR": "—",
+                    "FR × PB": "—",
+                    "+ GES": "—",
+                    "= Total": f"UF {calc['total_uf']:.3f}",
+                    "En $": f"${pc['total_clp']:,.0f}",
+                })
+                st.dataframe(pd.DataFrame(filas_calc), hide_index=True, use_container_width=True)
+
             with col_b:
                 st.markdown("**💰 Situación financiera:**")
-                st.markdown(f"- Tu 7%: UF {cotiz_7_uf:.3f} (${cotiz_7_uf*uf_valor:,.0f})")
-                st.markdown(f"- Valor plan: UF {calc['total_uf']:.3f} (${pc['total_clp']:,.0f})")
-                if pc["adicional_uf"] > 0:
-                    st.markdown(f"- **➕ Adicional: UF {pc['adicional_uf']:.3f} (${pc['adicional_uf']*uf_valor:,.0f}/mes)**")
-                    st.markdown(f"- Representa el {pc['pct_sueldo']:.1f}% de tu sueldo")
-                else:
-                    st.success("✅ Cubierto íntegramente por tu 7%")
-                st.markdown("**👥 Desglose:**")
-                for d in calc["desglose"]:
-                    st.markdown(f"- {d['rol']} ({d['edad']} años): UF {d['precio_uf']:.3f}")
+                color_adic = "#d32f2f" if pc["adicional_uf"] > cotiz_12_uf - cotiz_7_uf else "#2e7d32"
+                st.markdown(f"""
+                <div style='background:#f8f9fa;border-radius:8px;padding:12px;font-size:0.9rem'>
+                    <div>💡 Tu 7%: <b>UF {cotiz_7_uf:.3f}</b> (${cotiz_7_uf*uf_valor:,.0f}/mes)</div>
+                    <div>🏥 Valor plan: <b>UF {calc['total_uf']:.3f}</b> (${pc['total_clp']:,.0f}/mes)</div>
+                    <hr style='margin:6px 0'>
+                    {"<div style='color:green'>✅ Cubierto íntegramente por tu 7%</div>" if pc['adicional_uf'] <= 0
+                     else f"<div>➕ Adicional: <b style='color:{color_adic}'>UF {pc['adicional_uf']:.3f} (${pc['adicional_uf']*uf_valor:,.0f}/mes)</b></div><div>📊 Representa el {pc['pct_sueldo']:.1f}% de tu sueldo</div>"}
+                </div>
+                """, unsafe_allow_html=True)
 
             c_hosp, c_amb = st.columns(2)
             with c_hosp:
@@ -869,7 +928,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         for pc in planes_sel:
             p    = pc["plan"]
             calc = pc["calculo"]
-            # Cobertura en clínicas preferidas
             if clinicas_pref:
                 cob_cli_str = " / ".join(
                     f"{p['cob_hosp'].get(c, p['cob_amb'].get(c, '-'))}% {c[:12]}"
@@ -878,21 +936,26 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
             else:
                 cob_cli_str = "—"
             filas.append({
+                "": pc["semaforo"],
                 "Código": p["codigo"],
                 "Familia": p["familia"],
                 "Tipo": "Cerrado" if p["tipo"] == "cerrado" else "Libre Elec.",
+                "PB (UF)": p["precio_base"],
                 "Cob. Clínicas Pref.": cob_cli_str,
                 "UF Total": f"{calc['total_uf']:.3f}",
                 "$ Total": f"${pc['total_clp']:,.0f}",
                 "% Sueldo": f"{pc['pct_sueldo']:.1f}%",
-                "Adicional s/7%": f"UF {pc['adicional_uf']:.3f} (${pc['adicional_uf']*uf_valor:,.0f})" if pc["adicional_uf"] > 0 else "Sin adicional",
-                "": pc["semaforo"],
+                "Adicional s/7%": (
+                    f"UF {pc['adicional_uf']:.3f} (${pc['adicional_uf']*uf_valor:,.0f})"
+                    if pc["adicional_uf"] > 0 else "Sin adicional"
+                ),
             })
         st.dataframe(pd.DataFrame(filas), use_container_width=True, hide_index=True)
         st.caption(
             f"Sueldo: ${sueldo_input:,.0f} = UF {sueldo_uf:.2f}  |  "
             f"7% = UF {cotiz_7_uf:.3f} (${cotiz_7_uf*uf_valor:,.0f})  |  "
-            f"12% = UF {cotiz_12_uf:.3f} (${cotiz_12_uf*uf_valor:,.0f})"
+            f"12% = UF {cotiz_12_uf:.3f} (${cotiz_12_uf*uf_valor:,.0f})  |  "
+            f"GES por cotizado: UF {GES_UF}"
         )
 
     # ── TAB WHATSAPP ────────────────────────────────────────────
@@ -914,17 +977,18 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
                 f"✅ {p['familia']} {tag_tipo}\n"
                 f"   ({p['codigo']})\n"
                 f"✅ Valor por Beneficiario\n"
-                f"{desglose_beneficiarios(pc)}\n"
+                f"{desglose_simple(pc)}\n"
                 f"✅ Valor Mensual\n"
                 f"   UF {calc['total_uf']:.3f}\n"
                 f"   $ {pc['total_clp']:,.0f}\n"
-                f"{pc['semaforo']} {situacion_financiera(pc)}\n"
+                f"{pc['semaforo']} {situacion_financiera_txt(pc)}\n"
                 f"✅ Ver y descargar plan 👇🏻\n"
                 f"   {pdf_url}\n"
                 f"✅ Detalle de Coberturas\n"
                 f"{coberturas_txt(pc)}"
             )
 
+        # TODOS los planes seleccionados
         bloques_wa = [bloque_wa(pc, i+1) for i, pc in enumerate(planes_sel)]
 
         resumen = (
@@ -933,7 +997,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
             f"💡 Tu 7%: UF {cotiz_7_uf:.3f} (${cotiz_7_uf*uf_valor:,.0f}/mes)\n"
             f"⚠️  Referencia 12%: UF {cotiz_12_uf:.3f} (${cotiz_12_uf*uf_valor:,.0f}/mes)"
         )
-
         firma = (
             f"\n---\n"
             f"🩺 {asesor.get('nombre','Asesor Bupa')}\n"
@@ -944,7 +1007,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         )
 
         msg_wa = "\n\n".join(bloques_wa) + resumen + firma
-
         st.text_area("Mensaje WhatsApp:", value=msg_wa, height=500, key="cb_wa_txt")
 
         if tel_cliente:
@@ -953,10 +1015,11 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
             except Exception:
                 es_movil = False
             wa_encoded = url_quote(msg_wa, safe="")
-            if es_movil:
-                wa_url = f"https://wa.me/56{tel_cliente}?text={wa_encoded}"
-            else:
-                wa_url = f"https://web.whatsapp.com/send?phone=56{tel_cliente}&text={wa_encoded}"
+            wa_url = (
+                f"https://wa.me/56{tel_cliente}?text={wa_encoded}"
+                if es_movil
+                else f"https://web.whatsapp.com/send?phone=56{tel_cliente}&text={wa_encoded}"
+            )
             st.link_button("💬 Abrir WhatsApp con cliente", url=wa_url)
         else:
             st.caption("Ingresa el número del cliente para abrir WhatsApp directo.")
@@ -970,20 +1033,28 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         for i, pc in enumerate(planes_sel, 1):
             p    = pc["plan"]
             calc = pc["calculo"]
+            pb   = p["precio_base"]
             pdf_url = f"https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/CB/{p['codigo']}.pdf"
             tag_tipo = "Plan Cerrado" if p["tipo"] == "cerrado" else "Plan con Libre Elección"
 
-            desglose_em = "\n".join(
-                f"  • {d['rol']} ({d['edad']} años): UF {d['precio_uf']:.3f} aprox. ${d['precio_uf']*uf_valor:,.0f}"
-                for d in calc["desglose"]
-            )
+            # Desglose con fórmula para email
+            desglose_em = []
+            for d in calc["desglose"]:
+                fr  = d["fr"]
+                sub = round(fr * pb, 3)
+                tot = round(sub + GES_UF, 3)
+                desglose_em.append(
+                    f"  • {d['rol']} ({d['edad']} años): "
+                    f"FR {fr} x UF {pb} + GES {GES_UF} = UF {tot:.3f} (${tot*uf_valor:,.0f})"
+                )
+            desglose_em_str = "\n".join(desglose_em)
 
             if pc["adicional_uf"] <= 0:
-                fin_em = "El plan queda cubierto íntegramente por su cotización obligatoria del 7%."
+                fin_em = "  El plan queda cubierto íntegramente por su cotización obligatoria del 7%."
             else:
                 fin_em = (
-                    f"  Su cotización del 7%:  UF {cotiz_7_uf:.3f} (${cotiz_7_uf*uf_valor:,.0f}/mes)\n"
-                    f"  Adicional que paga:     UF {pc['adicional_uf']:.3f} (${pc['adicional_uf']*uf_valor:,.0f}/mes)\n"
+                    f"  Su cotización del 7%:     UF {cotiz_7_uf:.3f} (${cotiz_7_uf*uf_valor:,.0f}/mes)\n"
+                    f"  Adicional que usted paga: UF {pc['adicional_uf']:.3f} (${pc['adicional_uf']*uf_valor:,.0f}/mes)\n"
                     f"  El plan representa el {pc['pct_sueldo']:.1f}% de su sueldo imponible."
                 )
 
@@ -997,11 +1068,11 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
             )
 
             bloques_email.append(
-                f"OPCIÓN {i}: {p['familia']} — {tag_tipo}\n"
-                f"Código: {p['codigo']}\n\n"
-                f"Valor mensual: UF {calc['total_uf']:.3f} aprox. ${pc['total_clp']:,.0f}\n\n"
-                f"Desglose por beneficiario:\n{desglose_em}\n\n"
-                f"Situación financiera:\n{fin_em}\n\n"
+                f"OPCION {i}: {p['familia']} — {tag_tipo}\n"
+                f"Codigo: {p['codigo']}  |  Precio base: UF {pb}\n\n"
+                f"Valor mensual total: UF {calc['total_uf']:.3f} aprox. ${pc['total_clp']:,.0f}\n\n"
+                f"Desglose por beneficiario (FR x Precio Base + GES):\n{desglose_em_str}\n\n"
+                f"Situacion financiera:\n{fin_em}\n\n"
                 f"Coberturas hospitalarias:\n{hosp_em}\n\n"
                 f"Coberturas ambulatorias:\n{amb_em}\n\n"
                 f"Ver plan: {pdf_url}\n"
@@ -1010,20 +1081,20 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         sep = "\n" + "="*50 + "\n"
         cuerpo_email = (
             f"Estimado/a {nom_cliente or 'cliente'},\n\n"
-            f"Le presento la cotización de ISAPRE Cruz Blanca según los datos proporcionados.\n\n"
+            f"Le presento la cotizacion de ISAPRE Cruz Blanca segun los datos proporcionados.\n\n"
             f"DATOS FINANCIEROS\n"
-            f"Sueldo imponible:       ${sueldo_input:,.0f} (UF {sueldo_uf:.2f})\n"
-            f"Cotización 7%:          UF {cotiz_7_uf:.3f} (${cotiz_7_uf*uf_valor:,.0f}/mes)\n"
-            f"Referencia 12% sueldo:  UF {cotiz_12_uf:.3f} (${cotiz_12_uf*uf_valor:,.0f}/mes)\n"
+            f"Sueldo imponible:      ${sueldo_input:,.0f} (UF {sueldo_uf:.2f})\n"
+            f"Cotizacion 7%:         UF {cotiz_7_uf:.3f} (${cotiz_7_uf*uf_valor:,.0f}/mes)\n"
+            f"Referencia 12%:        UF {cotiz_12_uf:.3f} (${cotiz_12_uf*uf_valor:,.0f}/mes)\n"
             + sep
             + sep.join(bloques_email)
             + sep
-            + f"Cualquier consulta quedo a su disposición.\n\n"
+            + "Cualquier consulta quedo a su disposicion.\n\n"
             f"Saludos cordiales,\n"
             f"{asesor.get('nombre','Asesor Bupa')}\n"
             f"{asesor.get('telefono','')} | {asesor.get('email','')}\n"
             f"AsesorIA Seguros · Bupa Chile\n\n"
-            f"Cotización referencial tarifario Cruz Blanca. UF {uf_fmt_str} al {hoy_str}."
+            f"Cotizacion referencial tarifario Cruz Blanca. UF {uf_fmt_str} al {hoy_str}."
         )
 
         st.text_area("Cuerpo del email:", value=cuerpo_email, height=500, key="cb_email_txt")
