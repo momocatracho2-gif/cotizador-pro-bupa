@@ -789,11 +789,13 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         for p in planes_calc
     ]
 
-    # Solo pre-seleccionar si no hay selección previa guardada
-    if "cb_seleccion" not in st.session_state:
-        default_sel = idxs_rec_global
+    # Validar que los índices guardados siguen siendo válidos con el filtro actual
+    max_idx = len(planes_calc) - 1
+    prev = st.session_state.get("cb_seleccion", [])
+    if isinstance(prev, list) and all(isinstance(x, int) and x <= max_idx for x in prev) and len(prev) > 0:
+        default_sel = prev
     else:
-        default_sel = st.session_state["cb_seleccion"]
+        default_sel = idxs_rec_global
 
     seleccionados_idx = st.multiselect(
         "Selecciona 1 o más planes:",
