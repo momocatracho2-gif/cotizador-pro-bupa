@@ -1007,6 +1007,7 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         )
 
         msg_wa = "\n\n".join(bloques_wa) + resumen + firma
+        st.session_state["cb_wa_txt"] = msg_wa
         st.text_area("Mensaje WhatsApp:", value=msg_wa, height=500, key="cb_wa_txt")
 
         if tel_cliente:
@@ -1097,6 +1098,7 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
             f"Cotizacion referencial tarifario Cruz Blanca. UF {uf_fmt_str} al {hoy_str}."
         )
 
+        st.session_state["cb_email_txt"] = cuerpo_email
         st.text_area("Cuerpo del email:", value=cuerpo_email, height=500, key="cb_email_txt")
         outlook_url = (
             f"https://outlook.live.com/mail/0/deeplink/compose?"
