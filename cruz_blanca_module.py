@@ -789,12 +789,20 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         for p in planes_calc
     ]
 
-    # Validar que los índices guardados siguen siendo válidos con el filtro actual
+    # Calcular fingerprint del contexto actual para detectar cambios de filtro
+    ctx_key = f"{sueldo_input}_{edad_titular}_{n_cargas}_{'_'.join(sorted(clinicas_pref))}_{tipo_plan}"
+    prev_ctx = st.session_state.get("cb_ctx", "")
+    
+    if ctx_key != prev_ctx:
+        # Contexto cambió — resetear selección a recomendados
+        st.session_state["cb_ctx"] = ctx_key
+        st.session_state["cb_sel_default"] = idxs_rec_global
+    
+    default_sel = st.session_state.get("cb_sel_default", idxs_rec_global)
+    # Validar que los índices siguen siendo válidos
     max_idx = len(planes_calc) - 1
-    prev = st.session_state.get("cb_seleccion", [])
-    if isinstance(prev, list) and all(isinstance(x, int) and x <= max_idx for x in prev) and len(prev) > 0:
-        default_sel = prev
-    else:
+    default_sel = [i for i in default_sel if isinstance(i, int) and i <= max_idx]
+    if not default_sel:
         default_sel = idxs_rec_global
 
     seleccionados_idx = st.multiselect(
@@ -804,6 +812,8 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         format_func=lambda i: opciones_display[i],
         key="cb_seleccion",
     )
+    # Guardar selección actual para preservarla en el próximo render
+    st.session_state["cb_sel_default"] = seleccionados_idx
 
     if not seleccionados_idx:
         st.info("Selecciona al menos un plan para ver la cotización.")
