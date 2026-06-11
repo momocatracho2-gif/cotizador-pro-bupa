@@ -625,6 +625,7 @@ def seleccionar_recomendados(planes_calc: list, sueldo_uf: float, clinica_pref: 
 
 
 
+
 def seccion_cruz_blanca(uf_valor: float, asesor: dict):
     import streamlit as st
     import pandas as pd
@@ -646,10 +647,11 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Versión de cotización — incrementar limpia TODOS los widgets ──
+    # ── Versión — al incrementar, todos los widgets se resetean ──
     if "cb_version" not in st.session_state:
         st.session_state["cb_version"] = 0
     v = st.session_state["cb_version"]
+    s = f"_{v}"  # sufijo para todos los keys
 
     col_lim, _ = st.columns([1, 4])
     with col_lim:
@@ -657,9 +659,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
                      help="Limpia todos los campos para una nueva consulta"):
             st.session_state["cb_version"] = v + 1
             st.rerun()
-
-    # Sufijo de versión para todos los widgets
-    s = f"_{v}"
 
     is_mobile = st.session_state.get("is_mobile", False)
     col_filters = st.expander("⚙️ Filtros y datos del cotizante", expanded=True) if is_mobile else st.container()
@@ -743,21 +742,13 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         pct_sueldo = (calculo["total_uf"] / sueldo_uf * 100) if sueldo_uf > 0 else 0
 
         if calculo["total_uf"] < cotiz_7_uf:
-            semaforo = "🔴"
-            factib = "Menor al 7% — no contratable (Ley Corta)"
-            contratab = False
+            semaforo = "🔴"; factib = "Menor al 7% — no contratable (Ley Corta)"; contratab = False
         elif pct_sueldo <= 12:
             semaforo = "🟢"
-            factib = (
-                "Cubierto por tu 7%"
-                if adicional_uf <= 0
-                else f"Adicional: UF {adicional_uf:.3f} (${adicional_uf*uf_valor:,.0f}/mes)"
-            )
+            factib = "Cubierto por tu 7%" if adicional_uf <= 0 else f"Adicional: UF {adicional_uf:.3f} (${adicional_uf*uf_valor:,.0f}/mes)"
             contratab = True
         else:
-            semaforo = "🟡"
-            factib = f"Supera 12% — adicional UF {adicional_uf:.3f} (${adicional_uf*uf_valor:,.0f}/mes)"
-            contratab = True
+            semaforo = "🟡"; factib = f"Supera 12% — adicional UF {adicional_uf:.3f} (${adicional_uf*uf_valor:,.0f}/mes)"; contratab = True
 
         planes_calc.append({
             "plan": p, "calculo": calculo, "total_clp": total_clp,
@@ -767,34 +758,44 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
 
     planes_calc.sort(key=lambda x: x["calculo"]["total_uf"])
 
-    # ── SELECCIÓN AUTOMÁTICA ────────────────────────────────────
-    contratables = [p for p in planes_calc if p["contratab"]]
-    clinica_rec = clinicas_pref[0] if clinicas_pref else "Clínica Bupa Santiago"
-
-    if contratables:
-        idxs_en_cont = seleccionar_recomendados(contratables, sueldo_uf, clinica_rec)
-        idxs_rec_global = []
-        for ir in idxs_en_cont:
-            obj = contratables[ir]
-            gi = next(i for i, p in enumerate(planes_calc) if p["plan"]["codigo"] == obj["plan"]["codigo"])
-            idxs_rec_global.append(gi)
-    else:
-        idxs_rec_global = []
-
-    # Fingerprint para detectar cambio de contexto
-    ctx_key = f"{v}_{sueldo_input}_{edad_titular}_{n_cargas}_{'_'.join(sorted(clinicas_pref))}_{tipo_plan}"
+    # ── SELECCIÓN ───────────────────────────────────────────────
+    # Solo auto-recomendar si el asesor NO ha interactuado aún (primera carga)
+    # Usar fingerprint del contexto para detectar cambios
+    ctx_key = f"{sueldo_input}_{edad_titular}_{n_cargas}_{'_'.join(sorted(clinicas_pref))}_{tipo_plan}"
     prev_ctx = st.session_state.get(f"cb_ctx{s}", "")
-    if ctx_key != prev_ctx:
+    ctx_changed = ctx_key != prev_ctx
+
+    if ctx_changed:
         st.session_state[f"cb_ctx{s}"] = ctx_key
-        st.session_state[f"cb_sel_default{s}"] = idxs_rec_global
+        # Limpiar selección previa al cambiar contexto
         if f"cb_seleccion{s}" in st.session_state:
             del st.session_state[f"cb_seleccion{s}"]
+        # NO pre-seleccionar nada — el asesor elige
+        st.session_state[f"cb_auto_done{s}"] = False
 
-    default_sel = st.session_state.get(f"cb_sel_default{s}", idxs_rec_global)
+    # Solo auto-seleccionar la primera vez que se calculan planes con este contexto
+    if not st.session_state.get(f"cb_auto_done{s}", False) and clinicas_pref:
+        # Hay clínicas preferidas → calcular recomendados
+        contratables = [p for p in planes_calc if p["contratab"]]
+        if contratables:
+            clinica_rec = clinicas_pref[0]
+            idxs_en_cont = seleccionar_recomendados(contratables, sueldo_uf, clinica_rec)
+            idxs_rec_global = []
+            for ir in idxs_en_cont:
+                obj = contratables[ir]
+                gi = next(i for i, p in enumerate(planes_calc) if p["plan"]["codigo"] == obj["plan"]["codigo"])
+                idxs_rec_global.append(gi)
+            st.session_state[f"cb_default_sel{s}"] = idxs_rec_global
+        st.session_state[f"cb_auto_done{s}"] = True
+    elif not st.session_state.get(f"cb_auto_done{s}", False):
+        # Sin clínicas preferidas → no pre-seleccionar nada
+        st.session_state[f"cb_default_sel{s}"] = []
+        st.session_state[f"cb_auto_done{s}"] = True
+
+    default_sel = st.session_state.get(f"cb_default_sel{s}", [])
+    # Validar índices
     max_idx = len(planes_calc) - 1
-    default_sel = [i for i in default_sel if isinstance(i, int) and i <= max_idx]
-    if not default_sel:
-        default_sel = idxs_rec_global
+    default_sel = [i for i in default_sel if isinstance(i, int) and 0 <= i <= max_idx]
 
     st.markdown("---")
     st.markdown("#### 📌 Selecciona planes para cotizar")
@@ -812,10 +813,11 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         format_func=lambda i: opciones_display[i],
         key=f"cb_seleccion{s}",
     )
-    st.session_state[f"cb_sel_default{s}"] = seleccionados_idx
+    # Guardar selección actual como nuevo default
+    st.session_state[f"cb_default_sel{s}"] = seleccionados_idx
 
     if not seleccionados_idx:
-        st.info("Selecciona al menos un plan para ver la cotización.")
+        st.info("👆 Selecciona uno o más planes de la lista para ver el detalle.")
         return
 
     planes_sel = [planes_calc[i] for i in seleccionados_idx]
@@ -861,7 +863,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
             p = pc["plan"]; calc = pc["calculo"]; pb = p["precio_base"]
             tag_tipo = "🔒 Cerrado" if p["tipo"] == "cerrado" else "🔓 Libre Elección"
             border = "#E30613" if pc["contratab"] else "#aaa"
-
             col_h, col_b = st.columns([3, 2])
             with col_h:
                 st.markdown(f"""
@@ -872,7 +873,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
                     <div style='margin-top:6px'>{pc['semaforo']} {pc['factib']}</div>
                 </div>
                 """, unsafe_allow_html=True)
-
                 st.markdown("**📐 Detalle del cálculo:**")
                 filas_calc = []
                 sum_frpb = sum_ges = sum_tot = sum_clp = 0.0
@@ -883,8 +883,7 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
                     filas_calc.append({
                         "Beneficiario": f"{d['rol']} ({d['edad']} años)",
                         "FR": fr, "FR × PB": f"UF {frpb:.3f}",
-                        "+ GES": f"UF {GES_UF}", "= Total": f"UF {tot:.3f}",
-                        "En $": f"${clp_:,.0f}",
+                        "+ GES": f"UF {GES_UF}", "= Total": f"UF {tot:.3f}", "En $": f"${clp_:,.0f}",
                     })
                 filas_calc.append({
                     "Beneficiario": "━━ TOTAL PLAN ━━", "FR": "—",
@@ -892,7 +891,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
                     "= Total": f"UF {sum_tot:.3f}", "En $": f"${sum_clp:,.0f}",
                 })
                 st.dataframe(pd.DataFrame(filas_calc), hide_index=True, use_container_width=True)
-
             with col_b:
                 color_adic = "#c62828" if pc["pct_sueldo"] > 12 else "#2e7d32"
                 st.markdown(f"""
@@ -905,7 +903,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
                      else f"<div>➕ Adicional: <b style='color:{color_adic}'>UF {pc['adicional_uf']:.3f} (${pc['adicional_uf']*uf_valor:,.0f}/mes)</b></div><div>📊 Representa el {pc['pct_sueldo']:.1f}% de tu sueldo</div>"}
                 </div>
                 """, unsafe_allow_html=True)
-
             c_hosp, c_amb = st.columns(2)
             with c_hosp:
                 st.markdown("**🏥 Cobertura Hospitalaria:**")
@@ -917,7 +914,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
                 for cl, pct in sorted(p["cob_amb"].items(), key=lambda x: -x[1]):
                     star = " ⭐" if clinicas_pref and cl in clinicas_pref else ""
                     st.markdown(f"- {pct}% {cl}{star}")
-
             pdf_url = f"https://raw.githubusercontent.com/momocatracho2-gif/cotizador-pro-bupa/main/pdfs/CB/{p['codigo']}.pdf"
             st.markdown(f"[📎 Ver PDF del plan]({pdf_url})")
             st.markdown("---")
@@ -984,7 +980,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         msg_wa = "\n\n".join(bloques_wa) + resumen + firma
         st.session_state[f"cb_wa_txt{s}"] = msg_wa
         st.text_area("Mensaje WhatsApp:", value=msg_wa, height=500, key=f"cb_wa_txt{s}")
-
         if tel_cliente:
             try:
                 es_movil = st.query_params.get("_mv", "0") == "1"
@@ -1003,7 +998,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
     with tab_email:
         nom_cliente = st.text_input("Nombre del cliente:", key=f"cb_email_nom{s}", value="")
         asunto_email = f"Cotización ISAPRE Cruz Blanca — {nom_cliente or 'su consulta'}"
-
         bloques_email = []
         for i, pc in enumerate(planes_sel, 1):
             p = pc["plan"]; calc = pc["calculo"]; pb = p["precio_base"]
@@ -1029,7 +1023,6 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
                 f"Desglose por beneficiario (FR x Precio Base + GES):\n" + "\n".join(desglose_em) +
                 f"\n\nSituacion financiera:\n{fin_em}\n\nCoberturas hospitalarias:\n{hosp_em}\n\nCoberturas ambulatorias:\n{amb_em}\n\nVer plan: {pdf_url}\n"
             )
-
         sep = "\n" + "="*50 + "\n"
         cuerpo_email = (
             f"Estimado/a {nom_cliente or 'cliente'},\n\nLe presento la cotizacion de ISAPRE Cruz Blanca segun los datos proporcionados.\n\n"
