@@ -664,6 +664,22 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict, guardar_cotizacion_fn=Non
     col_filters = st.expander("⚙️ Filtros y datos del cotizante", expanded=True) if is_mobile else st.container()
 
     with col_filters:
+        # Fila 1: Nombre cliente y previsión de origen
+        r1c1, r1c2 = st.columns([2, 2])
+        with r1c1:
+            nombre_cliente_cb = st.text_input(
+                "👤 Nombre del cliente", placeholder="Ej: María González",
+                key=f"cb_nombre_cliente{s}"
+            )
+        with r1c2:
+            _isapres = ['FONASA', '── Isapres Abiertas ──', 'Banmédica', 'Colmena Golden Cross', 'Consalud', 'Cruz Blanca', 'Esencial', 'Nueva MásVida', 'Vida Tres', '── Isapres Cerradas ──', 'Isalud (Codelco)', 'Fundación (BancoEstado)', 'Cruz del Norte']
+            prevision_origen = st.selectbox(
+                "🏥 Previsión actual del cliente",
+                _isapres,
+                key=f"cb_prevision_origen{s}",
+                help="Previsión de salud actual antes de cambiarse a Cruz Blanca"
+            )
+
         c1, c2, c3 = st.columns([2, 2, 2])
         with c1:
             sueldo_input = st.number_input(
@@ -1005,12 +1021,13 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict, guardar_cotizacion_fn=Non
                     planes_nombres = [pc["plan"]["familia"] + " " + pc["plan"]["codigo"] for pc in planes_sel]
                     total_uf = sum(pc["calculo"]["total_uf"] for pc in planes_sel)
                     # Obtener nombre del cliente desde el campo de email si existe
-                    nom_bit = st.session_state.get(f"cb_email_nom{s}", "") or ""
+                    nom_bit = st.session_state.get(f"cb_nombre_cliente{s}", "") or st.session_state.get(f"cb_email_nom{s}", "") or ""
+                    prev_bit = st.session_state.get(f"cb_prevision_origen{s}", "No especificada")
                     ok_bit = guardar_cotizacion(
                         usuario         = st.session_state.get("usuario", asesor.get("nombre","asesor")),
                         nombre_cliente  = nom_bit,
                         edad_titular    = edad_titular,
-                        prevision       = "ISAPRE Cruz Blanca",
+                        prevision       = f"CB ← {prev_bit}",
                         n_cargas        = len(edades_cargas),
                         edades_cargas   = edades_cargas,
                         tipo_cotizacion = "Cruz Blanca",
