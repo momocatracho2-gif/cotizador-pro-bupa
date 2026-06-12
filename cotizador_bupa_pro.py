@@ -786,15 +786,8 @@ with col_lim_bupa:
     if "Bupa" in seccion:
         if st.button("🗑️ Nueva cotización", key="bupa_limpiar",
                      help="Limpia todos los campos para una nueva consulta"):
-            # Preservar login y sección
-            login_ok = st.session_state.get("login_ok", False)
-            usuario  = st.session_state.get("usuario", "")
-            es_admin = st.session_state.get("es_admin", False)
-            st.session_state.clear()
-            st.session_state["login_ok"]         = login_ok
-            st.session_state["usuario"]           = usuario
-            st.session_state["es_admin"]          = es_admin
-            st.session_state["seccion_principal"] = "🔵 Seguros Bupa"
+            # Incrementar versión — resetea todos los widgets sin tocar login
+            st.session_state["bupa_version"] = st.session_state.get("bupa_version", 0) + 1
             st.rerun()
 st.markdown("---")
 
@@ -1278,39 +1271,43 @@ except Exception:
 # ══════════════════════════════════════════════════════════════════
 # SIDEBAR (desktop) o EXPANDER (móvil)
 # ══════════════════════════════════════════════════════════════════
+# Versión Bupa — sufijo para todos los widgets, permite limpiar sin afectar login
+bv = st.session_state.get("bupa_version", 0)
+bs = f"_b{bv}"  # sufijo: _b0, _b1, _b2...
+
 _ctx = st.sidebar if not es_movil else st.expander("⚙️ Filtros y datos del cliente", expanded=True)
 
 with _ctx:
     st.markdown("## 👤 Datos del Cliente")
-    nombre    = st.text_input("Nombre completo", placeholder="Ej: Franco Lupi")
-    edad_c    = st.number_input("Edad asegurado (años)", 0, 84, 35)
+    nombre    = st.text_input("Nombre completo", placeholder="Ej: Franco Lupi", key=f"nombre{bs}")
+    edad_c    = st.number_input("Edad asegurado (años)", 0, 84, 35, key=f"edad_c{bs}")
     if edad_c == 0:
         meses_c = st.selectbox(
             "Meses de vida — Asegurado principal",
             options=list(range(1, 12)),
             format_func=lambda m: f"{m} mes{'es' if m>1 else ''}",
-            key="meses_contratante"
+            key=f"meses_contratante{bs}"
         )
     else:
         meses_c = None
     edad_label_c = (f"{meses_c} mes{'es' if meses_c and meses_c>1 else ''}" if edad_c == 0 and meses_c else f"{edad_c} años")
-    prevision = st.selectbox("Previsión", ["FONASA B,C,D","ISAPRE"])
+    prevision = st.selectbox("Previsión", ["FONASA B,C,D","ISAPRE"], key=f"prevision{bs}")
     prevision_base = "ISAPRE" if prevision=="ISAPRE" else "FONASA"
 
     st.markdown("---")
     st.markdown("### 👨‍👩‍👧‍👦 Cargas")
-    n_cargas = st.number_input("Número de cargas", 0, 6, 0)
+    n_cargas = st.number_input("Número de cargas", 0, 6, 0, key=f"n_cargas{bs}")
     cargas = []
     for i in range(int(n_cargas)):
         a,b = st.columns([2,1])
-        nc = a.text_input(f"Carga {i+1}", key=f"nc{i}", placeholder="Parentesco")
-        ec = b.number_input("Edad (años)", 0, 75, 1, key=f"ec{i}")
+        nc = a.text_input(f"Carga {i+1}", key=f"nc{i}{bs}", placeholder="Parentesco")
+        ec = b.number_input("Edad (años)", 0, 75, 1, key=f"ec{i}{bs}")
         if ec == 0:
             meses = st.selectbox(
                 f"Meses de vida — Carga {i+1}",
                 options=list(range(1, 12)),
                 format_func=lambda m: f"{m} mes{'es' if m>1 else ''}",
-                key=f"meses{i}"
+                key=f"meses{i}{bs}"
             )
             nombre_display = nc or f"Carga {i+1}"
             cargas.append({"nombre": nombre_display, "edad": 0, "meses": meses,
@@ -1322,6 +1319,7 @@ with _ctx:
     st.markdown("---")
     st.markdown("### ⚙️ Config")
     uf_api, uf_fecha = get_uf_hoy()
+    uf_fecha = uf_fecha or date.today().strftime("%Y-%m-%d")
     if uf_api:
         st.success("💱 UF " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (actualizada automáticamente)")
         uf_default = int(round(uf_api))
@@ -1329,36 +1327,37 @@ with _ctx:
         st.warning("⚠️ No se pudo obtener la UF automática. Ingresa el valor manual.")
         uf_default = 40180
     val_uf = st.number_input("Valor UF ($)", 30000, 50000, uf_default, 10,
-        help="Se actualiza automáticamente cada hora desde mindicador.cl")
+        help="Se actualiza automáticamente cada hora desde mindicador.cl",
+        key=f"val_uf{bs}")
     st.markdown("**Tramo convenios:**")
-    tramo_am     = st.selectbox("👴 Adulto Mayor",       list(AM_TARIFAS.keys()),            key="tramo_am")
-    tramo_im     = st.selectbox("💊 IntegraMédica 100%", list(IM100_TARIFAS.keys()),          key="tramo_im")
-    tramo_dental = st.selectbox("🦷 Mi Dental",          list(DENTAL_TARIFAS_MENSUAL.keys()), key="tramo_dental")
+    tramo_am     = st.selectbox("👴 Adulto Mayor",       list(AM_TARIFAS.keys()),            key=f"tramo_am{bs}")
+    tramo_im     = st.selectbox("💊 IntegraMédica 100%", list(IM100_TARIFAS.keys()),          key=f"tramo_im{bs}")
+    tramo_dental = st.selectbox("🦷 Mi Dental",          list(DENTAL_TARIFAS_MENSUAL.keys()), key=f"tramo_dental{bs}")
 
     st.markdown("---")
     st.markdown("### 🎁 Cupones")
-    usar_cupon = st.checkbox("Aplicar cupón de descuento", value=False)
+    usar_cupon = st.checkbox("Aplicar cupón de descuento", value=False, key=f"usar_cupon{bs}")
     if usar_cupon:
         st.info("BCT 60/70/80: BCTALL20NEW (20%)\nB+P: BMPHYA20NEW (20%)\nMultiSalud: BMSBASE20JUL (20%)\nAmb70: BMPAMB10ENERO (10%)\nMultiSalud Pro: BMSPRO10JUL (10%)")
 
     st.markdown("---")
     st.markdown("### 🎯 Filtros")
-    f_preex        = st.checkbox("⚠️ Preexistencias (sin DPS)")
-    f_cat          = st.checkbox("⚡ Extensión Catastrófica")
-    f_libre        = st.checkbox("🏥 Libre Elección")
-    f_maternidad   = st.checkbox("🍼 Maternidad")
-    f_salud_mental = st.checkbox("🧠 Salud Mental")
-    f_quirurgico   = st.checkbox("🔪 Hospitalización y Cirugías")
+    f_preex        = st.checkbox("⚠️ Preexistencias (sin DPS)",       key=f"f_preex{bs}")
+    f_cat          = st.checkbox("⚡ Extensión Catastrófica",          key=f"f_cat{bs}")
+    f_libre        = st.checkbox("🏥 Libre Elección",                  key=f"f_libre{bs}")
+    f_maternidad   = st.checkbox("🍼 Maternidad",                      key=f"f_maternidad{bs}")
+    f_salud_mental = st.checkbox("🧠 Salud Mental",                    key=f"f_salud_mental{bs}")
+    f_quirurgico   = st.checkbox("🔪 Hospitalización y Cirugías",      key=f"f_quirurgico{bs}")
 
     st.markdown("---")
     st.markdown("### 🤝 Convenios especiales")
-    f_adulto_mayor = st.checkbox("👴 Adulto Mayor (60-84 años)")
-    f_im100        = st.checkbox("💊 IntegraMédica 100%")
-    f_dental       = st.checkbox("🦷 Mi Dental 68%")
-    f_pyme         = st.checkbox("🏢 Empresa / PYME")
+    f_adulto_mayor = st.checkbox("👴 Adulto Mayor (60-84 años)",       key=f"f_adulto_mayor{bs}")
+    f_im100        = st.checkbox("💊 IntegraMédica 100%",              key=f"f_im100{bs}")
+    f_dental       = st.checkbox("🦷 Mi Dental 68%",                   key=f"f_dental{bs}")
+    f_pyme         = st.checkbox("🏢 Empresa / PYME",                  key=f"f_pyme{bs}")
 
     st.markdown("---")
-    if st.button("Cerrar sesión"):
+    if st.button("Cerrar sesión", key="cerrar_sesion_bupa"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
@@ -1468,7 +1467,7 @@ if planes_compatibles:
         for i,pk in enumerate(regulares_disp):
             p=PLANES[pk]; r=precios[pk]
             with cols_r[i%4]:
-                if st.checkbox(p["emoji"]+" "+p["nombre"]+"\nUF "+f"{r['total']:.2f}", value=(pk==rec), key="sel_"+pk):
+                if st.checkbox(p["emoji"]+" "+p["nombre"]+"\nUF "+f"{r['total']:.2f}", value=(pk==rec), key=f"sel_{pk}{bs}"):
                     planes_seleccionados.append(pk)
 
     if convenios_disp:
@@ -1478,7 +1477,7 @@ if planes_compatibles:
             p=CONVENIOS[pk]; r=precios.get(pk)
             with cols_c[i%4]:
                 ps = "UF "+f"{r['total']:.2f}"+" ("+r["tramo"]+")" if r else "por tramo"
-                if st.checkbox(p["emoji"]+" "+p["nombre"]+"\n"+ps, value=True, key="sel_"+pk):
+                if st.checkbox(p["emoji"]+" "+p["nombre"]+"\n"+ps, value=True, key=f"sel_{pk}{bs}"):
                     planes_seleccionados.append(pk)
 
     if not planes_seleccionados:
