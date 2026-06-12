@@ -1077,6 +1077,7 @@ with _ctx:
     st.markdown("---")
     st.markdown("### ⚙️ Config")
     uf_api, uf_fecha = get_uf_hoy()
+    uf_fecha = uf_fecha or date.today().strftime("%Y-%m-%d")
     if uf_api:
         st.success("💱 UF " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (actualizada automáticamente)")
         uf_default = int(round(uf_api))
@@ -1156,6 +1157,7 @@ rec = next((p for p in orden_rec if p in precios and precios[p].get("total")), "
 # HEADER PREMIUM CON LOGO REAL
 # ══════════════════════════════════════════════════════════════════
 uf_fmt = "$" + f"{val_uf:,}".replace(",",".")
+uf_fecha = uf_fecha if uf_fecha else date.today().strftime("%Y-%m-%d")
 st.markdown(
     '<div style="background:linear-gradient(135deg,#005EB8 0%,#0082D4 60%,#00AEEF 100%);'
     'padding:18px 24px;border-radius:18px;margin-bottom:16px;'
