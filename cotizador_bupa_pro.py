@@ -806,7 +806,7 @@ if "Cruz Blanca" in seccion:
         FACTOR_RIESGO, GES_UF, TOPE_IMPONIBLE_UF,
         calcular_precio_plan, seleccionar_recomendados
     )
-    seccion_cruz_blanca(uf_valor=uf_cb, asesor=asesor_cb)
+    seccion_cruz_blanca(uf_valor=uf_cb, asesor=asesor_cb, guardar_cotizacion_fn=guardar_cotizacion)
     st.stop()
 
 # ══════════════════════════════════════════════════════════════════

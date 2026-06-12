@@ -626,7 +626,7 @@ def seleccionar_recomendados(planes_calc: list, sueldo_uf: float, clinica_pref: 
 
 
 
-def seccion_cruz_blanca(uf_valor: float, asesor: dict):
+def seccion_cruz_blanca(uf_valor: float, asesor: dict, guardar_cotizacion_fn=None):
     import streamlit as st
     import pandas as pd
     from datetime import date
@@ -980,19 +980,49 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict):
         msg_wa = "\n\n".join(bloques_wa) + resumen + firma
         st.session_state[f"cb_wa_txt{s}"] = msg_wa
         st.text_area("Mensaje WhatsApp:", value=msg_wa, height=500, key=f"cb_wa_txt{s}")
-        if tel_cliente:
-            try:
-                es_movil = st.query_params.get("_mv", "0") == "1"
-            except Exception:
-                es_movil = False
-            wa_url = (
-                f"https://wa.me/56{tel_cliente}?text={url_quote(msg_wa, safe='')}"
-                if es_movil
-                else f"https://web.whatsapp.com/send?phone=56{tel_cliente}&text={url_quote(msg_wa, safe='')}"
-            )
-            st.link_button("💬 Abrir WhatsApp con cliente", url=wa_url)
-        else:
-            st.caption("Ingresa el número del cliente para abrir WhatsApp directo.")
+
+        col_wa_btn, col_bit_btn = st.columns([1, 1])
+        with col_wa_btn:
+            if tel_cliente:
+                try:
+                    es_movil = st.query_params.get("_mv", "0") == "1"
+                except Exception:
+                    es_movil = False
+                wa_url = (
+                    f"https://wa.me/56{tel_cliente}?text={url_quote(msg_wa, safe='')}"
+                    if es_movil
+                    else f"https://web.whatsapp.com/send?phone=56{tel_cliente}&text={url_quote(msg_wa, safe='')}"
+                )
+                st.link_button("💬 Abrir WhatsApp con cliente", url=wa_url)
+            else:
+                st.caption("Ingresa el número del cliente para abrir WhatsApp directo.")
+
+        with col_bit_btn:
+            if st.button("💾 Guardar en Bitácora", key=f"cb_guardar_bit{s}",
+                         help="Registra esta cotización en el historial"):
+                guardar_cotizacion = guardar_cotizacion_fn
+                if guardar_cotizacion:
+                    planes_nombres = [pc["plan"]["familia"] + " " + pc["plan"]["codigo"] for pc in planes_sel]
+                    total_uf = sum(pc["calculo"]["total_uf"] for pc in planes_sel)
+                    # Obtener nombre del cliente desde el campo de email si existe
+                    nom_bit = st.session_state.get(f"cb_email_nom{s}", "") or ""
+                    ok_bit = guardar_cotizacion(
+                        usuario         = st.session_state.get("usuario", asesor.get("nombre","asesor")),
+                        nombre_cliente  = nom_bit,
+                        edad_titular    = edad_titular,
+                        prevision       = "ISAPRE Cruz Blanca",
+                        n_cargas        = len(edades_cargas),
+                        edades_cargas   = edades_cargas,
+                        tipo_cotizacion = "Cruz Blanca",
+                        planes_enviados = planes_nombres,
+                        monto_uf        = round(total_uf, 3),
+                    )
+                    if ok_bit:
+                        st.success("✅ Cotización guardada en Bitácora.")
+                    else:
+                        st.warning("⚠️ No se pudo guardar. Verifica la conexión a Railway.")
+                else:
+                    st.warning("⚠️ Función de bitácora no disponible.")
 
     # ── TAB EMAIL ───────────────────────────────────────────────
     with tab_email:
