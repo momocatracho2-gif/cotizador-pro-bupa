@@ -406,6 +406,120 @@ def save_asesores(data):
 init_db()
 
 # ══════════════════════════════════════════════════════════════════
+# BITÁCORA DE COTIZACIONES
+# ══════════════════════════════════════════════════════════════════
+def init_bitacora():
+    """Crea la tabla bitacora si no existe."""
+    conn = get_pg_conn()
+    if not conn:
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS bitacora (
+                    id              SERIAL PRIMARY KEY,
+                    usuario         TEXT NOT NULL,
+                    fecha           TIMESTAMP DEFAULT NOW(),
+                    nombre_cliente  TEXT DEFAULT '',
+                    edad_titular    INTEGER DEFAULT 0,
+                    prevision       TEXT DEFAULT '',
+                    n_cargas        INTEGER DEFAULT 0,
+                    edades_cargas   TEXT DEFAULT '[]',
+                    tipo_cotizacion TEXT DEFAULT 'Bupa',
+                    planes_enviados TEXT DEFAULT '[]',
+                    nota            TEXT DEFAULT '',
+                    monto_uf        REAL DEFAULT 0
+                )
+            """)
+        conn.commit()
+    except Exception:
+        pass
+    finally:
+        conn.close()
+
+def guardar_cotizacion(usuario, nombre_cliente, edad_titular, prevision,
+                       n_cargas, edades_cargas, tipo_cotizacion, planes_enviados,
+                       nota="", monto_uf=0):
+    """Guarda una cotización en la bitácora."""
+    conn = get_pg_conn()
+    if not conn:
+        return False
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO bitacora
+                  (usuario, nombre_cliente, edad_titular, prevision,
+                   n_cargas, edades_cargas, tipo_cotizacion, planes_enviados, nota, monto_uf)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                usuario,
+                nombre_cliente or "",
+                int(edad_titular or 0),
+                prevision or "",
+                int(n_cargas or 0),
+                json.dumps(edades_cargas or [], ensure_ascii=False),
+                tipo_cotizacion or "Bupa",
+                json.dumps(planes_enviados or [], ensure_ascii=False),
+                nota or "",
+                float(monto_uf or 0),
+            ))
+        conn.commit()
+        return True
+    except Exception:
+        return False
+    finally:
+        conn.close()
+
+def cargar_bitacora(usuario, es_admin=False, limit=200):
+    """Carga cotizaciones de la bitácora."""
+    conn = get_pg_conn()
+    if not conn:
+        return []
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            if es_admin:
+                cur.execute("SELECT * FROM bitacora ORDER BY fecha DESC LIMIT %s", (limit,))
+            else:
+                cur.execute("SELECT * FROM bitacora WHERE usuario=%s ORDER BY fecha DESC LIMIT %s", (usuario, limit))
+            return cur.fetchall()
+    except Exception:
+        return []
+    finally:
+        conn.close()
+
+def actualizar_nota_bitacora(id_cot, nota):
+    """Actualiza la nota de una cotización."""
+    conn = get_pg_conn()
+    if not conn:
+        return False
+    try:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE bitacora SET nota=%s WHERE id=%s", (nota, id_cot))
+        conn.commit()
+        return True
+    except Exception:
+        return False
+    finally:
+        conn.close()
+
+def eliminar_cotizacion_bitacora(id_cot):
+    """Elimina una cotización de la bitácora."""
+    conn = get_pg_conn()
+    if not conn:
+        return False
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM bitacora WHERE id=%s", (id_cot,))
+        conn.commit()
+        return True
+    except Exception:
+        return False
+    finally:
+        conn.close()
+
+init_bitacora()
+
+# ══════════════════════════════════════════════════════════════════
 # LOGIN / ADMIN
 # ══════════════════════════════════════════════════════════════════
 if "login_ok"  not in st.session_state: st.session_state.login_ok  = False
@@ -660,12 +774,28 @@ if st.session_state.es_admin:
         st.rerun()
     st.stop()
 # ── SELECTOR PRINCIPAL ────────────────────────────────────
-seccion = st.radio(
-    "¿Qué quieres cotizar?",
-    ["🔵 Seguros Bupa", "🔴 ISAPRE Cruz Blanca"],
-    horizontal=True,
-    key="seccion_principal"
-)
+col_sec, col_lim_bupa = st.columns([4, 1])
+with col_sec:
+    seccion = st.radio(
+        "¿Qué quieres cotizar?",
+        ["🔵 Seguros Bupa", "🔴 ISAPRE Cruz Blanca", "📋 Bitácora"],
+        horizontal=True,
+        key="seccion_principal"
+    )
+with col_lim_bupa:
+    if "Bupa" in seccion:
+        if st.button("🗑️ Nueva cotización", key="bupa_limpiar",
+                     help="Limpia todos los campos para una nueva consulta"):
+            # Preservar login y sección
+            login_ok = st.session_state.get("login_ok", False)
+            usuario  = st.session_state.get("usuario", "")
+            es_admin = st.session_state.get("es_admin", False)
+            st.session_state.clear()
+            st.session_state["login_ok"]         = login_ok
+            st.session_state["usuario"]           = usuario
+            st.session_state["es_admin"]          = es_admin
+            st.session_state["seccion_principal"] = "🔵 Seguros Bupa"
+            st.rerun()
 st.markdown("---")
 
 if "Cruz Blanca" in seccion:
@@ -684,6 +814,121 @@ if "Cruz Blanca" in seccion:
         calcular_precio_plan, seleccionar_recomendados
     )
     seccion_cruz_blanca(uf_valor=uf_cb, asesor=asesor_cb)
+    st.stop()
+
+# ══════════════════════════════════════════════════════════════════
+# BITÁCORA — pantalla completa
+# ══════════════════════════════════════════════════════════════════
+if "Bitácora" in seccion:
+    usuario_actual = st.session_state.usuario
+    es_adm = st.session_state.get("es_admin", False)
+
+    st.markdown("""
+    <div style='background:linear-gradient(90deg,#1a237e,#283593);
+                padding:14px 20px;border-radius:10px;margin-bottom:18px'>
+        <span style='color:white;font-size:1.3rem;font-weight:700'>
+        📋 Bitácora de Cotizaciones
+        </span>
+        <span style='color:#c5cae9;font-size:0.85rem;margin-left:10px'>
+        Registro histórico de cotizaciones enviadas
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    registros = cargar_bitacora(usuario_actual, es_admin=es_adm, limit=200)
+
+    if not registros:
+        st.info("📭 Aún no hay cotizaciones registradas. Las cotizaciones se guardan automáticamente al generar un mensaje WhatsApp o Email.")
+    else:
+        # Filtros
+        fc1, fc2, fc3 = st.columns(3)
+        with fc1:
+            filtro_tipo = st.selectbox("Filtrar por tipo", ["Todos", "Bupa", "Cruz Blanca"], key="bit_tipo")
+        with fc2:
+            filtro_nombre = st.text_input("Buscar cliente", placeholder="Nombre...", key="bit_nombre")
+        with fc3:
+            if es_adm:
+                asesores_list = list(set(r["usuario"] for r in registros))
+                filtro_asesor = st.selectbox("Asesor", ["Todos"] + asesores_list, key="bit_asesor")
+            else:
+                filtro_asesor = usuario_actual
+
+        # Aplicar filtros
+        regs_filtrados = registros
+        if filtro_tipo != "Todos":
+            regs_filtrados = [r for r in regs_filtrados if filtro_tipo.lower() in r.get("tipo_cotizacion","").lower()]
+        if filtro_nombre:
+            regs_filtrados = [r for r in regs_filtrados if filtro_nombre.lower() in r.get("nombre_cliente","").lower()]
+        if es_adm and filtro_asesor != "Todos":
+            regs_filtrados = [r for r in regs_filtrados if r["usuario"] == filtro_asesor]
+
+        st.caption(f"Mostrando {len(regs_filtrados)} de {len(registros)} registros")
+
+        # Tabla resumen
+        filas_bit = []
+        for r in regs_filtrados:
+            try:
+                planes = json.loads(r.get("planes_enviados","[]"))
+                planes_str = ", ".join(planes[:3]) + ("..." if len(planes) > 3 else "")
+            except:
+                planes_str = str(r.get("planes_enviados",""))
+            try:
+                cargas = json.loads(r.get("edades_cargas","[]"))
+                cargas_str = ", ".join(str(c) for c in cargas) if cargas else "—"
+            except:
+                cargas_str = "—"
+            fecha_str = r["fecha"].strftime("%d/%m/%Y %H:%M") if r.get("fecha") else "—"
+            filas_bit.append({
+                "ID": r["id"],
+                "Fecha": fecha_str,
+                "Asesor": r.get("usuario","") if es_adm else "",
+                "Cliente": r.get("nombre_cliente","—"),
+                "Edad": r.get("edad_titular","—"),
+                "Previsión": r.get("prevision","—"),
+                "Cargas": cargas_str,
+                "Tipo": r.get("tipo_cotizacion","—"),
+                "Planes": planes_str,
+                "UF Total": f"UF {r.get('monto_uf',0):.2f}" if r.get("monto_uf") else "—",
+                "Nota": r.get("nota",""),
+            })
+
+        if not es_adm:
+            # Quitar columna Asesor para no-admin
+            for f in filas_bit:
+                del f["Asesor"]
+
+        st.dataframe(pd.DataFrame(filas_bit), use_container_width=True, hide_index=True)
+
+        # Editar nota / eliminar
+        st.markdown("---")
+        st.markdown("#### ✏️ Editar nota o eliminar registro")
+        ids_disp = [r["id"] for r in regs_filtrados]
+        if ids_disp:
+            sel_id = st.selectbox(
+                "Selecciona registro por ID:",
+                ids_disp,
+                format_func=lambda x: f"#{x} — " + next(
+                    (r.get("nombre_cliente","?") for r in regs_filtrados if r["id"]==x), "?"
+                ),
+                key="bit_sel_id"
+            )
+            reg_sel = next((r for r in regs_filtrados if r["id"] == sel_id), None)
+            if reg_sel:
+                col_n, col_b = st.columns([3,1])
+                with col_n:
+                    nota_actual = reg_sel.get("nota","")
+                    nueva_nota = st.text_area("Nota:", value=nota_actual, height=80, key=f"bit_nota_{sel_id}")
+                    if st.button("💾 Guardar nota", key=f"bit_save_{sel_id}"):
+                        if actualizar_nota_bitacora(sel_id, nueva_nota):
+                            st.success("✅ Nota guardada.")
+                            st.rerun()
+                with col_b:
+                    st.markdown("&nbsp;")
+                    if st.button("🗑️ Eliminar registro", key=f"bit_del_{sel_id}", type="secondary"):
+                        if eliminar_cotizacion_bitacora(sel_id):
+                            st.warning("Registro eliminado.")
+                            st.rerun()
+
     st.stop()
 
 # ══════════════════════════════════════════════════════════════════
@@ -1077,7 +1322,6 @@ with _ctx:
     st.markdown("---")
     st.markdown("### ⚙️ Config")
     uf_api, uf_fecha = get_uf_hoy()
-    uf_fecha = uf_fecha or date.today().strftime("%Y-%m-%d")
     if uf_api:
         st.success("💱 UF " + uf_fecha + ": $" + f"{uf_api:,.0f}".replace(",",".") + " (actualizada automáticamente)")
         uf_default = int(round(uf_api))
@@ -1157,7 +1401,6 @@ rec = next((p for p in orden_rec if p in precios and precios[p].get("total")), "
 # HEADER PREMIUM CON LOGO REAL
 # ══════════════════════════════════════════════════════════════════
 uf_fmt = "$" + f"{val_uf:,}".replace(",",".")
-uf_fecha = uf_fecha if uf_fecha else date.today().strftime("%Y-%m-%d")
 st.markdown(
     '<div style="background:linear-gradient(135deg,#005EB8 0%,#0082D4 60%,#00AEEF 100%);'
     'padding:18px 24px;border-radius:18px;margin-bottom:16px;'
@@ -1728,6 +1971,31 @@ with t4:
         cuerpo_email = msg_a_email(msg, nombre or "Cliente", planes_seleccionados, uf_fmt, hoy)
 
         st.success("✅ Mensaje listo con "+str(len(planes_seleccionados))+" plan(es) seleccionado(s).")
+
+        # ── Botón guardar en bitácora ─────────────────────────────
+        col_gbit, _ = st.columns([2, 3])
+        with col_gbit:
+            if st.button("💾 Guardar en Bitácora", key="bupa_guardar_bit",
+                         help="Registra esta cotización en tu historial"):
+                planes_nombres = [CATALOGO[pk]["nombre"] for pk in planes_seleccionados]
+                total_uf = sum(precios[pk]["total"] for pk in planes_seleccionados if pk in precios)
+                edades_c = [c["edad"] for c in cargas]
+                ok_bit = guardar_cotizacion(
+                    usuario     = st.session_state.usuario,
+                    nombre_cliente = nombre or "",
+                    edad_titular   = edad_c,
+                    prevision      = prevision,
+                    n_cargas       = len(cargas),
+                    edades_cargas  = edades_c,
+                    tipo_cotizacion= "Bupa",
+                    planes_enviados= planes_nombres,
+                    monto_uf       = round(total_uf, 3),
+                )
+                if ok_bit:
+                    st.success("✅ Cotización guardada en Bitácora.")
+                else:
+                    st.warning("⚠️ No se pudo guardar (sin conexión a BD). Verifica Railway.")
+
         with st.expander("📎 Verificar PDFs"):
             cols_pdf = st.columns(min(len(planes_seleccionados), 3))
             for i, plan_key in enumerate(planes_seleccionados):
