@@ -1018,21 +1018,30 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict, guardar_cotizacion_fn=Non
                          help="Registra esta cotización en el historial"):
                 guardar_cotizacion = guardar_cotizacion_fn
                 if guardar_cotizacion:
-                    planes_nombres = [pc["plan"]["familia"] + " " + pc["plan"]["codigo"] for pc in planes_sel]
-                    total_uf = sum(pc["calculo"]["total_uf"] for pc in planes_sel)
-                    # Obtener nombre del cliente desde el campo de email si existe
+                    # Planes con UF individual por plan
+                    planes_con_uf = [
+                        f"{pc['plan']['familia']} {pc['plan']['codigo']} — UF {pc['calculo']['total_uf']:.3f}"
+                        for pc in planes_sel
+                    ]
+                    # Cargas con nombre y edad (ya viene como "Carga 1 17")
+                    cargas_detalle = [f"Carga {i+1} ({e} años)" for i, e in enumerate(edades_cargas)]
                     nom_bit = st.session_state.get(f"cb_nombre_cliente{s}", "") or st.session_state.get(f"cb_email_nom{s}", "") or ""
                     prev_bit = st.session_state.get(f"cb_prevision_origen{s}", "No especificada")
+                    cel_bit   = st.session_state.get(f"cb_tel_cliente{s}", "") or ""
+                    # El email del cliente se toma de la tab Email si fue ingresado
+                    email_bit = st.session_state.get(f"cb_email_dest{s}", "") or ""
                     ok_bit = guardar_cotizacion(
                         usuario         = st.session_state.get("usuario", asesor.get("nombre","asesor")),
                         nombre_cliente  = nom_bit,
                         edad_titular    = edad_titular,
-                        prevision       = f"CB ← {prev_bit}",
+                        prevision       = f"CB <- {prev_bit}",
                         n_cargas        = len(edades_cargas),
-                        edades_cargas   = edades_cargas,
+                        edades_cargas   = cargas_detalle,
                         tipo_cotizacion = "Cruz Blanca",
-                        planes_enviados = planes_nombres,
-                        monto_uf        = round(total_uf, 3),
+                        planes_enviados = planes_con_uf,
+                        monto_uf        = 0,
+                        celular_cliente = cel_bit,
+                        email_cliente   = email_bit,
                     )
                     if ok_bit:
                         st.success("✅ Cotización guardada en Bitácora.")
@@ -1043,7 +1052,11 @@ def seccion_cruz_blanca(uf_valor: float, asesor: dict, guardar_cotizacion_fn=Non
 
     # ── TAB EMAIL ───────────────────────────────────────────────
     with tab_email:
-        nom_cliente = st.text_input("Nombre del cliente:", key=f"cb_email_nom{s}", value="")
+        em_c1, em_c2 = st.columns(2)
+        with em_c1:
+            nom_cliente = st.text_input("Nombre del cliente:", key=f"cb_email_nom{s}", value="")
+        with em_c2:
+            email_dest_cb = st.text_input("Email del cliente:", placeholder="cliente@email.com", key=f"cb_email_dest{s}", value="")
         asunto_email = f"Cotización ISAPRE Cruz Blanca — {nom_cliente or 'su consulta'}"
         bloques_email = []
         for i, pc in enumerate(planes_sel, 1):

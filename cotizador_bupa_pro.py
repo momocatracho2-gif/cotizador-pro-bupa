@@ -428,9 +428,17 @@ def init_bitacora():
                     tipo_cotizacion TEXT DEFAULT 'Bupa',
                     planes_enviados TEXT DEFAULT '[]',
                     nota            TEXT DEFAULT '',
-                    monto_uf        REAL DEFAULT 0
+                    monto_uf        REAL DEFAULT 0,
+                    celular_cliente TEXT DEFAULT '',
+                    email_cliente   TEXT DEFAULT ''
                 )
             """)
+            # Migrar columnas si ya existe la tabla sin celular/email
+            for col, tipo in [("celular_cliente","TEXT DEFAULT ''"),("email_cliente","TEXT DEFAULT ''")]:
+                try:
+                    cur.execute(f"ALTER TABLE bitacora ADD COLUMN IF NOT EXISTS {col} {tipo}")
+                except Exception:
+                    pass
         conn.commit()
     except Exception:
         pass
@@ -439,7 +447,7 @@ def init_bitacora():
 
 def guardar_cotizacion(usuario, nombre_cliente, edad_titular, prevision,
                        n_cargas, edades_cargas, tipo_cotizacion, planes_enviados,
-                       nota="", monto_uf=0):
+                       nota="", monto_uf=0, celular_cliente="", email_cliente=""):
     """Guarda una cotización en la bitácora."""
     conn = get_pg_conn()
     if not conn:
@@ -449,8 +457,9 @@ def guardar_cotizacion(usuario, nombre_cliente, edad_titular, prevision,
             cur.execute("""
                 INSERT INTO bitacora
                   (usuario, nombre_cliente, edad_titular, prevision,
-                   n_cargas, edades_cargas, tipo_cotizacion, planes_enviados, nota, monto_uf)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                   n_cargas, edades_cargas, tipo_cotizacion, planes_enviados,
+                   nota, monto_uf, celular_cliente, email_cliente)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             """, (
                 usuario,
                 nombre_cliente or "",
@@ -462,6 +471,8 @@ def guardar_cotizacion(usuario, nombre_cliente, edad_titular, prevision,
                 json.dumps(planes_enviados or [], ensure_ascii=False),
                 nota or "",
                 float(monto_uf or 0),
+                celular_cliente or "",
+                email_cliente or "",
             ))
         conn.commit()
         return True
@@ -862,35 +873,46 @@ if "Bitácora" in seccion:
         for r in regs_filtrados:
             try:
                 planes = json.loads(r.get("planes_enviados","[]"))
-                planes_str = ", ".join(planes[:3]) + ("..." if len(planes) > 3 else "")
+                planes_str = "\n".join(planes) if planes else "—"
             except:
                 planes_str = str(r.get("planes_enviados",""))
             try:
                 cargas = json.loads(r.get("edades_cargas","[]"))
-                cargas_str = ", ".join(str(c) for c in cargas) if cargas else "—"
+                cargas_str = " / ".join(str(c) for c in cargas) if cargas else "—"
             except:
                 cargas_str = "—"
             fecha_str = r["fecha"].strftime("%d/%m/%Y %H:%M") if r.get("fecha") else "—"
-            filas_bit.append({
+            celular = r.get("celular_cliente","") or "—"
+            email_c = r.get("email_cliente","") or "—"
+            fila = {
                 "ID": r["id"],
                 "Fecha": fecha_str,
                 "Asesor": r.get("usuario","") if es_adm else "",
                 "Cliente": r.get("nombre_cliente","—"),
                 "Edad": r.get("edad_titular","—"),
+                "Celular": celular,
+                "Email": email_c,
                 "Previsión": r.get("prevision","—"),
                 "Cargas": cargas_str,
                 "Tipo": r.get("tipo_cotizacion","—"),
-                "Planes": planes_str,
-                "UF Total": f"UF {r.get('monto_uf',0):.2f}" if r.get("monto_uf") else "—",
+                "Planes cotizados": planes_str,
                 "Nota": r.get("nota",""),
-            })
+            }
+            filas_bit.append(fila)
 
         if not es_adm:
-            # Quitar columna Asesor para no-admin
             for f in filas_bit:
                 del f["Asesor"]
 
-        st.dataframe(pd.DataFrame(filas_bit), use_container_width=True, hide_index=True)
+        st.dataframe(
+            pd.DataFrame(filas_bit),
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Planes cotizados": st.column_config.TextColumn(width="large"),
+                "Nota": st.column_config.TextColumn(width="medium"),
+            }
+        )
 
         # Editar nota / eliminar
         st.markdown("---")
@@ -1632,7 +1654,7 @@ with t4:
     else:
         wa1,wa2=st.columns([2,3])
         with wa1:
-            telefono_cliente=st.text_input("WhatsApp cliente (solo 9 dígitos)",placeholder="912345678")
+            telefono_cliente=st.text_input("WhatsApp cliente (solo 9 dígitos)",placeholder="912345678", key=f"telefono_cliente_bupa{bs}")
         with wa2:
             modo = st.radio("Modo", ["Comparativa (todos los seleccionados)","Un solo plan"])
         email_cliente = ""
@@ -1976,19 +1998,30 @@ with t4:
         with col_gbit:
             if st.button("💾 Guardar en Bitácora", key="bupa_guardar_bit",
                          help="Registra esta cotización en tu historial"):
-                planes_nombres = [CATALOGO[pk]["nombre"] for pk in planes_seleccionados]
-                total_uf = sum(precios[pk]["total"] for pk in planes_seleccionados if pk in precios)
-                edades_c = [c["edad"] for c in cargas]
+                # Planes con UF individual: "BCT 70 — UF 1.31"
+                planes_con_uf = [
+                    f"{CATALOGO[pk]['nombre']} — UF {precios[pk]['total']:.3f}"
+                    for pk in planes_seleccionados if pk in precios
+                ]
+                # Cargas con parentesco y edad: ["Cónyuge 48", "Hijo 23"]
+                cargas_detalle = [
+                    f"{c['nombre']} {c['edad']}" for c in cargas
+                ]
+                # Celular desde WhatsApp, email desde tab Email
+                cel_bit   = st.session_state.get(f"telefono_cliente_bupa{bs}", "") or ""
+                email_bit = st.session_state.get(f"email_dest_bupa{bs}", "") or ""
                 ok_bit = guardar_cotizacion(
-                    usuario     = st.session_state.usuario,
-                    nombre_cliente = nombre or "",
-                    edad_titular   = edad_c,
-                    prevision      = prevision,
-                    n_cargas       = len(cargas),
-                    edades_cargas  = edades_c,
-                    tipo_cotizacion= "Bupa",
-                    planes_enviados= planes_nombres,
-                    monto_uf       = round(total_uf, 3),
+                    usuario         = st.session_state.usuario,
+                    nombre_cliente  = nombre or "",
+                    edad_titular    = edad_c,
+                    prevision       = prevision,
+                    n_cargas        = len(cargas),
+                    edades_cargas   = cargas_detalle,
+                    tipo_cotizacion = "Bupa",
+                    planes_enviados = planes_con_uf,
+                    monto_uf        = 0,
+                    celular_cliente = cel_bit,
+                    email_cliente   = email_bit,
                 )
                 if ok_bit:
                     st.success("✅ Cotización guardada en Bitácora.")
@@ -2010,7 +2043,7 @@ with t5:
     else:
         em1, em2 = st.columns(2)
         with em1:
-            email_dest = st.text_input("Email destinatario", placeholder="cliente@email.com", key="email_dest_t5")
+            email_dest = st.text_input("Email destinatario", placeholder="cliente@email.com", key=f"email_dest_bupa{bs}")
         with em2:
             st.caption("")
             st.caption("Puedes enviar directo a Outlook o copiar el mensaje y pegarlo manualmente.")
